@@ -1,5 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { headers } from "next/headers";
+import { cache } from "react";
 import { secret } from "@/lib/stripe";
 
 /**
@@ -16,7 +17,18 @@ let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
 export type AdminIdentity = { email: string };
 
-export async function requireAdmin(): Promise<AdminIdentity> {
+/**
+ * Verify once per request, not once per component.
+ *
+ * The layout guards the page, and each page guards itself — which meant the
+ * same RSA signature was being verified three times for a single dashboard
+ * load. React's `cache` memoises for the lifetime of one request, so the layout
+ * and the page share a single verification. On a platform billed by CPU
+ * milliseconds that is not a micro-optimisation.
+ */
+export const requireAdmin = cache(verifyAdmin);
+
+async function verifyAdmin(): Promise<AdminIdentity> {
   const h = await headers();
   const token = h.get("cf-access-jwt-assertion");
 
@@ -73,10 +85,14 @@ export class AccessError extends Error {}
  * means an unauthorised request touches nothing.
  */
 export async function isAdmin(): Promise<boolean> {
+  return (await adminOrNull()) !== null;
+}
+
+/** Same guard, but hands back the identity so callers don't verify twice. */
+export async function adminOrNull(): Promise<AdminIdentity | null> {
   try {
-    await requireAdmin();
-    return true;
+    return await requireAdmin();
   } catch {
-    return false;
+    return null;
   }
 }

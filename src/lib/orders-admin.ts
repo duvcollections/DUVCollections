@@ -31,6 +31,8 @@ export type Order = {
   tracking: string | null;
   shippedAt: string | null;
   paymentIntentId: string | null;
+  /** `SKU x qty` pairs recorded at checkout, used to work out parcel weight. */
+  skus: { sku: string; qty: number }[];
 };
 
 const cents = (n: number | null | undefined) => (n ?? 0) / 100;
@@ -66,7 +68,23 @@ function toOrder(s: Stripe.Checkout.Session): Order {
     shippedAt: m.shipped_at ?? null,
     paymentIntentId:
       typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null,
+    skus: parseSkus(m.skus),
   };
+}
+
+/** `DTF-ROLL-30-100x1,CH004x2` → structured lines. Never throws on junk. */
+function parseSkus(raw: string | undefined): { sku: string; qty: number }[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((part) => {
+      const at = part.lastIndexOf("x");
+      if (at < 1) return null;
+      const qty = Number(part.slice(at + 1));
+      if (!Number.isFinite(qty) || qty < 1) return null;
+      return { sku: part.slice(0, at), qty: Math.floor(qty) };
+    })
+    .filter((l): l is { sku: string; qty: number } => l !== null);
 }
 
 export async function listOrders(limit = 50): Promise<Order[]> {
