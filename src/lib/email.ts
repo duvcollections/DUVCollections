@@ -214,6 +214,106 @@ export async function sendContactEmail(c: ContactEmail): Promise<SendResult> {
   });
 }
 
+/* ------------------------------------------------------------------ low stock */
+
+export type LowStockEmail = {
+  to: string;
+  items: { sku: string; title: string; stock: number; lowStockAt: number }[];
+  orderRef: string;
+};
+
+/**
+ * Tells you a sale took something to its low-stock line.
+ *
+ * Sent once per crossing, not once per order — an alert that fires on every
+ * sale while a product sits low is an alert you learn to ignore, which is worse
+ * than not having one.
+ */
+export async function sendLowStockEmail(o: LowStockEmail): Promise<SendResult> {
+  const resend = await client();
+  if (!resend) return { ok: false, error: NOT_CONFIGURED };
+
+  const rows = o.items
+    .map(
+      (i) => `<tr>
+        <td style="padding:8px 14px 8px 0;color:${INK.plum};font-weight:600">${escapeHtml(i.title)}</td>
+        <td style="padding:8px 14px 8px 0;color:${INK.faint};font-family:ui-monospace,Menlo,monospace;font-size:13px">${escapeHtml(i.sku)}</td>
+        <td style="padding:8px 0;text-align:right;color:${i.stock === 0 ? "#e34948" : INK.plum};font-weight:700">
+          ${i.stock === 0 ? "Out of stock" : `${i.stock} left`}
+        </td></tr>`,
+    )
+    .join("");
+
+  const html = shell({
+    eyebrow: "Stock alert",
+    heading: o.items.length === 1 ? "One product is running low" : `${o.items.length} products are running low`,
+    body: `
+      <p style="font-size:16px;line-height:1.6;color:${INK.muted}">
+        Order <strong style="color:${INK.plum}">${escapeHtml(o.orderRef)}</strong> took these to
+        or below their low-stock level.</p>
+      <table style="width:100%;border-collapse:collapse;margin:24px 0;font-size:14px">${rows}</table>
+      <div style="margin:28px 0">${button(`${site.url}/admin/products`, "Open the product list")}</div>
+      <p style="font-size:13px;color:${INK.muted};line-height:1.7">
+        You'll get one message per product per time it crosses the line — not one per order —
+        so this stays worth reading.</p>`,
+  });
+
+  return send(resend, {
+    to: o.to,
+    subject:
+      o.items.length === 1
+        ? `Low stock: ${o.items[0].title}`
+        : `Low stock: ${o.items.length} products`,
+    html,
+  });
+}
+
+/* --------------------------------------------------------------------- refund */
+
+export type RefundEmail = {
+  to: string;
+  name: string | null;
+  orderRef: string;
+  amount: number;
+  full: boolean;
+  note: string | null;
+};
+
+/**
+ * Confirms a refund. Sent because the alternative is a customer watching their
+ * bank for days wondering whether you actually did it — which becomes a
+ * chargeback far more often than it becomes a polite follow-up.
+ */
+export async function sendRefundEmail(o: RefundEmail): Promise<SendResult> {
+  const resend = await client();
+  if (!resend) return { ok: false, error: NOT_CONFIGURED };
+
+  const html = shell({
+    eyebrow: site.name,
+    heading: o.full ? "Your refund is on its way" : "A partial refund is on its way",
+    body: `
+      <p style="font-size:16px;line-height:1.6;color:${INK.muted}">
+        ${o.name ? `Hi ${escapeHtml(o.name.split(" ")[0])}, w` : "W"}e've refunded
+        <strong style="color:${INK.plum}">${money(o.amount)}</strong> against order
+        <strong style="color:${INK.plum}">${escapeHtml(o.orderRef)}</strong>.</p>
+      ${o.note ? `<p style="font-size:15px;line-height:1.7;color:${INK.plum};border-left:3px solid ${INK.line};padding-left:16px">${escapeHtml(o.note)}</p>` : ""}
+      <p style="font-size:13px;color:${INK.muted};line-height:1.7">
+        It goes back to the card you paid with. Banks usually show it within
+        5–10 business days — that wait is theirs, not ours, and there's nothing
+        further you need to do.</p>
+      <p style="font-size:13px;color:${INK.muted};line-height:1.7">
+        Questions? Reply to this email or write to
+        <a href="mailto:${site.contact.support}" style="color:#7B3FF2">${site.contact.support}</a>,
+        quoting ${escapeHtml(o.orderRef)}.</p>`,
+  });
+
+  return send(resend, {
+    to: o.to,
+    subject: `Refund confirmed — ${o.orderRef}`,
+    html,
+  });
+}
+
 /* --------------------------------------------------------------------------- send */
 
 async function send(

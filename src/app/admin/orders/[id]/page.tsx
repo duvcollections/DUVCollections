@@ -4,6 +4,7 @@ import { getOrder } from "@/lib/orders-admin";
 import { trackingUrl } from "@/lib/email";
 import { money, site } from "@/lib/site";
 import { ShipForm } from "./ShipForm";
+import { RefundForm } from "./RefundForm";
 import { isAdmin } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
@@ -137,6 +138,9 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           </p>
         </div>
       </div>
+      <section className="mt-10 border-t border-duv-line pt-8">
+        <RefundForm id={o.id} ref_={o.ref} total={o.total} hasStock={o.skus.length > 0} />
+      </section>
     </>
   );
 }

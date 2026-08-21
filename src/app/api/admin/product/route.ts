@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, AccessError } from "@/lib/access";
+import { requestRedeploy } from "@/lib/redeploy";
 import { upsertProduct, setArchived, seedCatalogue, slugify, NoDatabase } from "@/lib/products-repo";
 import { allProducts, type Product, type CategoryId } from "@/lib/catalog";
 
@@ -40,7 +41,8 @@ export async function POST(req: NextRequest) {
     // ---------------------------------------------------------------- seed
     if (body.action === "seed") {
       const { inserted } = await seedCatalogue(actor);
-      return NextResponse.json({ ok: true, inserted });
+    const rebuild = await requestRedeploy();
+    return NextResponse.json({ ok: true, inserted, rebuild });
     }
 
     // ------------------------------------------------------------- archive
@@ -48,7 +50,8 @@ export async function POST(req: NextRequest) {
       const sku = String(body.sku ?? "");
       if (!sku) return NextResponse.json({ error: "SKU required." }, { status: 400 });
       await setArchived(sku, Boolean(body.archived), actor);
-      return NextResponse.json({ ok: true });
+    const rebuild = await requestRedeploy();
+    return NextResponse.json({ ok: true, rebuild });
     }
 
     // ---------------------------------------------------------------- save
@@ -137,7 +140,8 @@ export async function POST(req: NextRequest) {
 
       await upsertProduct(product, actor);
       console.log(`[admin] ${actor} ${isNew ? "created" : "updated"} ${sku}`);
-      return NextResponse.json({ ok: true, sku, slug });
+    const rebuild = await requestRedeploy();
+    return NextResponse.json({ ok: true, sku, slug, rebuild });
     }
 
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });

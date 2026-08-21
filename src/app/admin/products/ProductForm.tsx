@@ -66,13 +66,23 @@ export function ProductForm({ product }: { product?: Product }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "save", isNew, product: f }),
     });
-    const d = (await res.json()) as { ok?: boolean; error?: string; sku?: string };
+    const d = (await res.json()) as {
+      ok?: boolean; error?: string; sku?: string;
+      rebuild?: { queued: boolean; reason?: string };
+    };
     if (!res.ok || !d.ok) {
       setMsg({ ok: false, text: d.error ?? `Failed (${res.status}).` });
       setBusy(false);
       return;
     }
-    setMsg({ ok: true, text: "Saved." });
+    setMsg({
+      ok: true,
+      text: d.rebuild?.queued
+        ? "Saved. The shop is rebuilding — the change is live in about two minutes."
+        : `Saved to the catalogue. The shop still shows the old version${
+            d.rebuild?.reason ? ` (${d.rebuild.reason})` : ""
+          } — push a commit to refresh it.`,
+    });
     setBusy(false);
     router.refresh();
     if (isNew) router.push(`/admin/products/${d.sku}`);

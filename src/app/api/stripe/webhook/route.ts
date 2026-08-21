@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripeClient, cryptoProvider, secret } from "@/lib/stripe";
-import { sendConfirmationEmail } from "@/lib/email";
+import { sendConfirmationEmail, sendLowStockEmail } from "@/lib/email";
+import { applyStockForOrder, lowStockCrossings } from "@/lib/products-repo";
+import { site } from "@/lib/site";
 
 
 /**
@@ -58,6 +60,36 @@ export async function POST(req: NextRequest) {
           `items ${s.metadata?.skus ?? "?"}`,
       );
 
+      // Take the sold items off the shelf before anything else. This is the
+      // only place stock moves automatically, and it is idempotent by way of
+      // the stock_applied table — Stripe redelivers events, and a shop that
+      // decrements on every delivery oversells.
+      //
+      // Wrapped like everything else here: a stock failure must not produce a
+      // non-2xx, because Stripe would then retry the whole event for days.
+      try {
+        const lines = parseSkus(s.metadata?.skus);
+        if (lines.length > 0) {
+          const moves = await applyStockForOrder(s.id, lines, "stripe-webhook");
+          if (moves === null) {
+            console.log(`[stock] ${s.id} already counted — retry ignored`);
+          } else if (moves.length > 0) {
+            console.log(`[stock] ${s.id}: ${moves.map((m) => `${m.sku} ${m.before}→${m.after}`).join(", ")}`);
+            const low = await lowStockCrossings(moves);
+            if (low.length > 0) {
+              const sent = await sendLowStockEmail({
+                to: site.contact.admin,
+                items: low,
+                orderRef: s.id.slice(-12).toUpperCase(),
+              });
+              if (!sent.ok) console.error(`[stock] low-stock email failed: ${sent.error}`);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[stock] could not apply stock:", err);
+      }
+
       // Our own confirmation, carrying the one-click tracking link. Stripe's
       // receipt proves payment; this one tells them where the parcel is.
       //
@@ -112,4 +144,19 @@ export async function POST(req: NextRequest) {
 
   // Always 200 on a verified event. A non-2xx makes Stripe retry for days.
   return NextResponse.json({ received: true });
+}
+
+/** `SKUx2,OTHERx1` → lines. Mirrors the format written at checkout. */
+function parseSkus(raw: string | undefined): { sku: string; qty: number }[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((part) => {
+      const at = part.lastIndexOf("x");
+      if (at < 1) return null;
+      const qty = Number(part.slice(at + 1));
+      if (!Number.isFinite(qty) || qty < 1) return null;
+      return { sku: part.slice(0, at), qty: Math.floor(qty) };
+    })
+    .filter((l): l is { sku: string; qty: number } => l !== null);
 }
