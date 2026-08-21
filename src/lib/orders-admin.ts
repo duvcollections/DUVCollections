@@ -46,13 +46,31 @@ function toOrder(s: Stripe.Checkout.Session): Order {
   const shipped = Boolean(m.tracking);
 
   // A refunded Checkout Session still reports payment_status "paid" — because
-  // it WAS paid; the refund is a separate object hanging off the PaymentIntent.
-  // Without this check a refunded order sits in the packing queue forever and
-  // keeps counting toward revenue. The stamp is written by the refund route and
-  // by the charge.refunded webhook, so refunds issued straight from the Stripe
-  // dashboard are caught too.
-  const refundedAmount = Number(m.refunded_amount ?? 0);
-  const fullyRefunded = m.refunded === "full" || (refundedAmount > 0 && refundedAmount >= (s.amount_total ?? 0));
+  // it WAS paid; the refund is a separate object on the PaymentIntent. Without
+  // accounting for it, a refunded order sits in the packing queue forever and
+  // keeps counting toward revenue.
+  //
+  // Read from the expanded charge FIRST, and treat the metadata stamp only as a
+  // fallback. An earlier version relied on the stamp alone, which meant any
+  // refund issued before that code shipped — or through any tool that doesn't
+  // write it — stayed invisible. Stripe already knows the answer; asking it is
+  // both simpler and retroactive.
+  const charge =
+    typeof s.payment_intent === "object" && s.payment_intent
+      ? typeof s.payment_intent.latest_charge === "object"
+        ? s.payment_intent.latest_charge
+        : null
+      : null;
+
+  const refundedCents = charge
+    ? charge.amount_refunded
+    : Number(m.refunded_amount ?? 0);
+
+  const refundedAmount = refundedCents;
+  const fullyRefunded =
+    refundedCents > 0
+      ? refundedCents >= (charge?.amount ?? s.amount_total ?? 0)
+      : m.refunded === "full";
 
   return {
     id: s.id,
@@ -113,7 +131,8 @@ export async function listOrders(limit = 50): Promise<Order[]> {
   const stripe = stripeClient(await secret("STRIPE_SECRET_KEY"));
   const res = await stripe.checkout.sessions.list({
     limit,
-    expand: ["data.line_items"],
+    // The charge carries amount_refunded, which is how a refund is detected.
+    expand: ["data.line_items", "data.payment_intent.latest_charge"],
   });
   return res.data
     .filter((s) => s.payment_status === "paid")
@@ -125,7 +144,7 @@ export async function getOrder(id: string): Promise<Order | null> {
   const stripe = stripeClient(await secret("STRIPE_SECRET_KEY"));
   try {
     const s = await stripe.checkout.sessions.retrieve(id, {
-      expand: ["line_items"],
+      expand: ["line_items", "payment_intent.latest_charge"],
     });
     return toOrder(s);
   } catch {
@@ -155,7 +174,7 @@ export async function findOrderForCustomer(
     const res: Stripe.ApiList<Stripe.Checkout.Session> =
       await stripe.checkout.sessions.list({
         limit: 100,
-        expand: ["data.line_items"],
+        expand: ["data.line_items", "data.payment_intent.latest_charge"],
         ...(startingAfter ? { starting_after: startingAfter } : {}),
       });
 
@@ -193,7 +212,9 @@ export async function markShipped(
       ...(labelUrl && labelUrl.length <= 480 ? { label_url: labelUrl } : {}),
     },
   });
-  const full = await stripe.checkout.sessions.retrieve(s.id, { expand: ["line_items"] });
+  const full = await stripe.checkout.sessions.retrieve(s.id, {
+    expand: ["line_items", "payment_intent.latest_charge"],
+  });
   return toOrder(full);
 }
 

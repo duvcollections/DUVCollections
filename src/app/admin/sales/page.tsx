@@ -27,8 +27,12 @@ export default async function Sales() {
     { label: "Last 30 days", days: 30 },
     { label: "Last 90 days", days: 90 },
   ].map((w) => {
-    const set = orders.filter((o) => now - o.created < w.days * DAY);
-    const revenue = set.reduce((n, o) => n + o.total, 0);
+    // Refunded orders are excluded outright, and partial refunds are netted
+    // off. Money that went back to the customer is not revenue.
+    const set = orders.filter(
+      (o) => now - o.created < w.days * DAY && o.status !== "refunded",
+    );
+    const revenue = set.reduce((n, o) => n + Math.max(0, o.total - o.refundedAmount), 0);
     const tax = set.reduce((n, o) => n + o.tax, 0);
     const shipping = set.reduce((n, o) => n + o.shipping, 0);
     return {
@@ -43,9 +47,12 @@ export default async function Sales() {
     };
   });
 
-  // Units and revenue per product across everything Stripe returned
+  // Units and revenue per product. Refunded orders are skipped — a returned
+  // item is not a unit sold, and leaving it in makes a best-seller list that
+  // recommends restocking things people sent back.
   const perItem = new Map<string, { qty: number; revenue: number }>();
   for (const o of orders) {
+    if (o.status === "refunded") continue;
     for (const i of o.items) {
       const cur = perItem.get(i.title) ?? { qty: 0, revenue: 0 };
       cur.qty += i.qty;
@@ -59,7 +66,9 @@ export default async function Sales() {
     .slice(0, 10);
   const maxRevenue = top[0]?.revenue ?? 1;
 
-  const lifetime = orders.reduce((n, o) => n + o.total, 0);
+  const lifetime = orders
+    .filter((o) => o.status !== "refunded")
+    .reduce((n, o) => n + Math.max(0, o.total - o.refundedAmount), 0);
 
   return (
     <>
@@ -73,7 +82,7 @@ export default async function Sales() {
       <ul className="mt-7 grid gap-4 md:grid-cols-3">
         {windows.map((w) => (
           <li key={w.label} className="rounded-2xl border border-duv-line bg-white p-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-duv-faint">{w.label}</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-duv-faint-ink">{w.label}</p>
             <p className="mt-3 font-display text-[30px] font-extrabold leading-none tabular-nums">
               {money(w.revenue)}
             </p>
@@ -112,7 +121,7 @@ export default async function Sales() {
                 </div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-duv-shell">
                   <div
-                    className="h-full rounded-full bg-duv-pink"
+                    className="h-full rounded-full bg-duv-pink-deep"
                     style={{ width: `${Math.max(3, (t.revenue / maxRevenue) * 100)}%` }}
                   />
                 </div>
@@ -122,7 +131,7 @@ export default async function Sales() {
         )}
       </section>
 
-      <p className="mt-8 text-[13px] text-duv-faint">
+      <p className="mt-8 text-[13px] text-duv-faint-ink">
         Lifetime across these {orders.length} orders: <strong className="text-duv-muted">{money(lifetime)}</strong>.
         For full financial reporting, including payouts and fees, use the Stripe dashboard.
       </p>
