@@ -39,7 +39,8 @@
     "upc": null,
     "mpn": "DTF-ROLL-30-100",
     "shipWeightOz": 96,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "DTF-GLIT-A4-SILVER",
@@ -80,7 +81,8 @@
     "upc": null,
     "mpn": "DTF-GLIT-A4-SILVER",
     "shipWeightOz": 24,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "DTF-GLIT-A3-GOLD",
@@ -123,7 +125,8 @@
     "upc": null,
     "mpn": "DTF-GLIT-A3-GOLD",
     "shipWeightOz": 24,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "DTF-POWDER-500",
@@ -161,7 +164,8 @@
     "upc": null,
     "mpn": "DTF-POWDER-500",
     "shipWeightOz": 20,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "DTF-INK-CYAN-500",
@@ -201,7 +205,8 @@
     "upc": null,
     "mpn": "DTF-INK-CYAN-500",
     "shipWeightOz": 20,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "HTP-DARK-100",
@@ -243,7 +248,8 @@
     "upc": null,
     "mpn": "HTP-DARK-100",
     "shipWeightOz": 36,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "HTP-DARK-50",
@@ -284,7 +290,8 @@
     "upc": null,
     "mpn": "HTP-DARK-50",
     "shipWeightOz": 18,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "HTP-LIGHT-50",
@@ -327,7 +334,8 @@
     "upc": null,
     "mpn": "HTP-LIGHT-50",
     "shipWeightOz": 18,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "HTV-CHAM-12",
@@ -369,7 +377,8 @@
     "upc": null,
     "mpn": "HTV-CHAM-12",
     "shipWeightOz": 10,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "CH001",
@@ -408,7 +417,8 @@
     "upc": null,
     "mpn": "CH001",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "CH002",
@@ -447,7 +457,8 @@
     "upc": null,
     "mpn": "CH002",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "CH003",
@@ -486,7 +497,8 @@
     "upc": null,
     "mpn": "CH003",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "CH004",
@@ -525,7 +537,8 @@
     "upc": null,
     "mpn": "CH004",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "CH005",
@@ -564,7 +577,8 @@
     "upc": null,
     "mpn": "CH005",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "CH006",
@@ -603,7 +617,8 @@
     "upc": null,
     "mpn": "CH006",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "CH007",
@@ -642,7 +657,8 @@
     "upc": null,
     "mpn": "CH007",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN001",
@@ -679,7 +695,8 @@
     "upc": null,
     "mpn": "PEN001",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN002",
@@ -716,7 +733,8 @@
     "upc": null,
     "mpn": "PEN002",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN003",
@@ -753,7 +771,8 @@
     "upc": null,
     "mpn": "PEN003",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN004",
@@ -790,7 +809,8 @@
     "upc": null,
     "mpn": "PEN004",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN007",
@@ -827,7 +847,8 @@
     "upc": null,
     "mpn": "PEN007",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN009",
@@ -864,7 +885,8 @@
     "upc": null,
     "mpn": "PEN009",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN010",
@@ -901,7 +923,8 @@
     "upc": null,
     "mpn": "PEN010",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN011",
@@ -938,7 +961,8 @@
     "upc": null,
     "mpn": "PEN011",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PEN017",
@@ -975,7 +999,8 @@
     "upc": null,
     "mpn": "PEN017",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PND001",
@@ -1013,7 +1038,8 @@
     "upc": null,
     "mpn": "PND001",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PND002",
@@ -1050,7 +1076,8 @@
     "upc": null,
     "mpn": "PND002",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PND003",
@@ -1088,7 +1115,8 @@
     "upc": null,
     "mpn": "PND003",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PND004",
@@ -1125,7 +1153,8 @@
     "upc": null,
     "mpn": "PND004",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PND005",
@@ -1164,7 +1193,8 @@
     "upc": null,
     "mpn": "PND005",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PND006",
@@ -1203,7 +1233,8 @@
     "upc": null,
     "mpn": "PND006",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "PND007",
@@ -1242,7 +1273,8 @@
     "upc": null,
     "mpn": "PND007",
     "shipWeightOz": 1,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "ER001",
@@ -1280,7 +1312,8 @@
     "upc": null,
     "mpn": "ER001",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "ER002",
@@ -1318,7 +1351,8 @@
     "upc": null,
     "mpn": "ER002",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "ER003",
@@ -1356,7 +1390,8 @@
     "upc": null,
     "mpn": "ER003",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "ER004",
@@ -1394,7 +1429,8 @@
     "upc": null,
     "mpn": "ER004",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "ER005",
@@ -1432,7 +1468,8 @@
     "upc": null,
     "mpn": "ER005",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "BJ004",
@@ -1472,7 +1509,8 @@
     "upc": null,
     "mpn": "BJ004",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ005",
@@ -1512,7 +1550,8 @@
     "upc": null,
     "mpn": "BJ005",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ006",
@@ -1552,7 +1591,8 @@
     "upc": null,
     "mpn": "BJ006",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ007",
@@ -1592,7 +1632,8 @@
     "upc": null,
     "mpn": "BJ007",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ100PAIR",
@@ -1633,7 +1674,8 @@
     "upc": null,
     "mpn": "BJ100PAIR",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "WBG006",
@@ -1670,7 +1712,8 @@
     "upc": null,
     "mpn": "WBG006",
     "shipWeightOz": 2,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "BJ001",
@@ -1678,7 +1721,7 @@
     "title": "Simple Nose Rings \u2014 12 Pieces",
     "price": 12.0,
     "category": "jewelry",
-    "subcategory": "rings",
+    "subcategory": "nose-jewelry",
     "description": "Twelve plain nose rings in a simple hoop profile. Everyday stock that always moves.",
     "specs": {
       "Quantity": "12 pieces",
@@ -1707,7 +1750,8 @@
     "upc": null,
     "mpn": "BJ001",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ002",
@@ -1715,7 +1759,7 @@
     "title": "Rhinestone Nose Rings \u2014 40 Pieces",
     "price": 10.0,
     "category": "jewelry",
-    "subcategory": "rings",
+    "subcategory": "nose-jewelry",
     "description": "Forty rhinestone-set nose rings in assorted designs.",
     "specs": {
       "Quantity": "40 pieces",
@@ -1744,7 +1788,8 @@
     "upc": null,
     "mpn": "BJ002",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ002A",
@@ -1752,7 +1797,7 @@
     "title": "Rhinestone Nose Rings \u2014 60 Pieces",
     "price": 12.0,
     "category": "jewelry",
-    "subcategory": "rings",
+    "subcategory": "nose-jewelry",
     "description": "Sixty rhinestone nose rings \u2014 the larger pack, at a better price per piece.",
     "specs": {
       "Quantity": "60 pieces",
@@ -1781,7 +1826,8 @@
     "upc": null,
     "mpn": "BJ002A",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ003",
@@ -1789,7 +1835,7 @@
     "title": "Surgical Steel Nose Studs \u2014 40 Pieces",
     "price": 12.0,
     "category": "jewelry",
-    "subcategory": "rings",
+    "subcategory": "nose-jewelry",
     "description": "Forty surgical-steel nose studs. The steel matters here: it's the grade that suits sensitive and newly healed piercings.",
     "specs": {
       "Quantity": "40 pieces",
@@ -1820,7 +1866,8 @@
     "upc": null,
     "mpn": "BJ003",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ010",
@@ -1858,7 +1905,8 @@
     "upc": null,
     "mpn": "BJ010",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "BJ011",
@@ -1896,7 +1944,8 @@
     "upc": null,
     "mpn": "BJ011",
     "shipWeightOz": 4,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": true
   },
   {
     "sku": "SG-AIRFORCE",
@@ -1936,7 +1985,8 @@
     "upc": null,
     "mpn": "SG-AIRFORCE",
     "shipWeightOz": 3,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "SG-GISELLE",
@@ -1971,7 +2021,8 @@
     "upc": null,
     "mpn": "SG-GISELLE",
     "shipWeightOz": 3,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "SG-LOCS",
@@ -2010,7 +2061,8 @@
     "upc": null,
     "mpn": "SG-LOCS",
     "shipWeightOz": 3,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   },
   {
     "sku": "SG-EY3-UV400",
@@ -2046,6 +2098,7 @@
     "upc": null,
     "mpn": "SG-EY3-UV400",
     "shipWeightOz": 3,
-    "condition": "new"
+    "condition": "new",
+    "wholesale": false
   }
 ]

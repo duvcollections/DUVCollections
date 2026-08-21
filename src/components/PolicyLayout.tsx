@@ -70,16 +70,8 @@ export function PolicyLayout({
             <p className="text-[13.5px]">
               <strong>{site.legalName}</strong>
               <br />
-              {site.address.line1.startsWith("TODO") ? (
-                <span className="text-duv-red">
-                  [Business address to be added before launch]
-                </span>
-              ) : (
-                <>
-                  {site.address.line1}, {site.address.city}, {site.address.state}{" "}
-                  {site.address.postalCode}, {site.address.country}
-                </>
-              )}
+              A limited liability company registered in the State of {site.governingState},
+              United States.
             </p>
           </div>
         </div>

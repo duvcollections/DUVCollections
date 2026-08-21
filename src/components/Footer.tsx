@@ -18,14 +18,7 @@ const COMPANY = [
   { href: "/faq", label: "FAQ" },
 ];
 
-function todo(v: string) {
-  return v.startsWith("TODO");
-}
-
 export function Footer() {
-  const addr = site.address;
-  const addressKnown = !todo(addr.line1);
-
   return (
     <footer className="mt-24 bg-duv-plum text-white">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -38,19 +31,7 @@ export function Footer() {
             <p className="mt-5 text-[13px] leading-relaxed text-white/60">
               <span className="font-semibold text-white/85">{site.legalName}</span>
               <br />
-              {addressKnown ? (
-                <>
-                  {addr.line1}
-                  <br />
-                  {addr.city}, {addr.state} {addr.postalCode}
-                  <br />
-                  {addr.country}
-                </>
-              ) : (
-                <span className="text-duv-amber">
-                  Business address pending — add it in src/lib/site.ts
-                </span>
-              )}
+              A registered US limited liability company
             </p>
           </div>
 

@@ -28,16 +28,20 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<Params>;
-  searchParams: Promise<{ sub?: string }>;
+  searchParams: Promise<{ sub?: string; lot?: string }>;
 }) {
   const { category } = await params;
-  const { sub } = await searchParams;
+  const { sub, lot } = await searchParams;
   const c = getCategory(category);
   if (!c) notFound();
 
   const subs = subcategoriesOf(category);
   const all = byCategory(category);
-  const items = sub ? all.filter((p) => p.subcategory === sub) : all;
+  let items = sub ? all.filter((p) => p.subcategory === sub) : all;
+  if (lot === "1") items = items.filter((p) => p.wholesale);
+  const lotCount = (sub ? all.filter((p) => p.subcategory === sub) : all).filter(
+    (p) => p.wholesale,
+  ).length;
 
   return (
     <>
@@ -74,6 +78,25 @@ export default async function CategoryPage({
                 {s.label} <span className="ml-1 opacity-60">{s.count}</span>
               </Link>
             ))}
+          </div>
+        )}
+
+        {lotCount > 0 && (
+          <div className="mb-6">
+            <Link
+              href={`/shop/${category}?${new URLSearchParams({
+                ...(sub ? { sub } : {}),
+                ...(lot === "1" ? {} : { lot: "1" }),
+              })}`}
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[13.5px] font-semibold transition-colors ${
+                lot === "1"
+                  ? "border-duv-violet bg-duv-violet text-white"
+                  : "border-duv-line bg-white text-duv-plum hover:border-duv-violet"
+              }`}
+            >
+              {lot === "1" ? "Showing wholesale lots only" : "Wholesale lots only"}
+              <span className="opacity-60">{lotCount}</span>
+            </Link>
           </div>
         )}
 

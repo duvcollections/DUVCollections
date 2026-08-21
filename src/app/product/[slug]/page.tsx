@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProductImage } from "@/components/ProductImage";
+import { ProductImage, hasPhoto } from "@/components/ProductImage";
 import { AddToCart } from "@/components/AddToCart";
 import { ProductGrid } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -110,11 +110,14 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             category={p.category}
             art={p.art}
             title={p.title}
-            className="aspect-square rounded-3xl border border-duv-line [container-type:inline-size]"
+            priority
+            className="aspect-square rounded-3xl border border-duv-line"
           />
-          <p className="mt-3 text-center text-[12.5px] text-duv-faint">
-            Product photography in progress — specifications below are accurate.
-          </p>
+          {!hasPhoto(p.sku) && (
+            <p className="mt-3 text-center text-[12.5px] text-duv-faint">
+              Illustration — photography in progress. Specifications below are accurate.
+            </p>
+          )}
         </div>
 
         <div>
@@ -129,6 +132,11 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             <span className="font-display text-4xl font-extrabold tabular-nums">
               {money(p.price)}
             </span>
+            {p.wholesale && (
+              <span className="rounded-full bg-duv-violet/15 px-3 py-1 text-[12.5px] font-bold text-duv-violet">
+                Wholesale lot
+              </span>
+            )}
             {avail === "out-of-stock" ? (
               <span className="rounded-full bg-duv-line px-3 py-1 text-[12.5px] font-bold text-duv-muted">
                 Out of stock

@@ -12,7 +12,8 @@
     "cf-build": "opennextjs-cloudflare build",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "inventory:export": "node scripts/export-inventory.mjs",
-    "inventory:import": "node scripts/import-inventory.mjs"
+    "inventory:import": "node scripts/import-inventory.mjs",
+    "images:ingest": "node scripts/ingest-images.mjs"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.2",
@@ -27,6 +28,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.125.0"

@@ -31,8 +31,13 @@ export function ProductCard({ p }: { p: Product }) {
         />
       </Link>
       <div className="flex flex-1 flex-col p-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.13em] text-duv-faint">
-          {subcategoryLabels[p.subcategory] ?? p.subcategory}
+        <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.13em] text-duv-faint">
+          <span>{subcategoryLabels[p.subcategory] ?? p.subcategory}</span>
+          {p.wholesale && (
+            <span className="rounded-full bg-duv-violet/12 px-2 py-0.5 tracking-[0.1em] text-duv-violet">
+              Lot
+            </span>
+          )}
         </p>
         <h3 className="mt-1.5 text-[14.5px] font-bold leading-snug">
           <Link

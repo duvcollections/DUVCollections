@@ -33,6 +33,8 @@ export type Product = {
   /** Manufacturer part number — ours to define, so it mirrors the SKU. */
   mpn: string;
   shipWeightOz: number;
+  /** A multi-piece lot priced for resale, rather than a single retail piece. */
+  wholesale: boolean;
   condition: "new" | "used" | "refurbished";
 };
 
@@ -96,7 +98,8 @@ export const subcategoryLabels: Record<string, string> = {
   pendants: "Pendants",
   earrings: "Earrings",
   bangles: "Bangles",
-  rings: "Rings & Nose Jewelry",
+  rings: "Rings",
+  "nose-jewelry": "Nose Jewelry",
   sunglasses: "Sunglasses",
 };
 
@@ -142,3 +145,5 @@ export const priceRange = (id: string) => {
   const ps = byCategory(id).map((p) => p.price);
   return { min: Math.min(...ps), max: Math.max(...ps) };
 };
+
+export const wholesaleItems = () => products.filter((p) => p.wholesale);

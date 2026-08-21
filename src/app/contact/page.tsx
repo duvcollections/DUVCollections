@@ -24,9 +24,6 @@ const ROUTES = [
 ];
 
 export default function Contact() {
-  const addr = site.address;
-  const known = !addr.line1.startsWith("TODO");
-
   return (
     <>
       <PageHeader
@@ -60,27 +57,15 @@ export default function Contact() {
             </h2>
             <p className="mt-3 text-[15px] font-bold">{site.legalName}</p>
             <p className="mt-1.5 text-[14.5px] leading-relaxed text-duv-muted">
-              {known ? (
-                <>
-                  {addr.line1}
-                  <br />
-                  {addr.city}, {addr.state} {addr.postalCode}
-                  <br />
-                  {addr.country}
-                </>
-              ) : (
-                <span className="font-semibold text-duv-red">
-                  Business address to be published before launch.
-                </span>
-              )}
+              A limited liability company registered in the State of{" "}
+              {site.governingState}, United States. We ship from{" "}
+              {site.governingState}.
             </p>
-            {!site.contact.phone.startsWith("TODO") && (
-              <p className="mt-3 text-[14.5px]">
-                <a className="font-semibold text-duv-violet underline underline-offset-4" href={site.contact.phoneHref}>
-                  {site.contact.phone}
-                </a>
-              </p>
-            )}
+            <p className="mt-3 text-[13.5px] leading-relaxed text-duv-muted">
+              We handle everything by email so there is a written record of what was
+              agreed — which protects you as much as us. Postal correspondence can be
+              arranged; email us and we will send an address.
+            </p>
           </div>
 
           <div className="rounded-3xl bg-tint-printing p-7">

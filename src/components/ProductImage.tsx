@@ -1,12 +1,21 @@
+import Image from "next/image";
 import { categories } from "@/lib/catalog";
 import { ProductArt } from "@/components/ProductArt";
+import images from "@/data/product-images.json";
+
+const PHOTOS = images as Record<string, string[]>;
+
+export const hasPhoto = (sku: string) => Boolean(PHOTOS[sku]?.length);
+export const photosFor = (sku: string) => PHOTOS[sku] ?? [];
 
 /**
- * The product tile: a soft ink wash unique to the SKU, with an illustration of
- * what the product actually is sitting on top.
+ * A product tile. Uses a real photograph the moment one exists at
+ * public/products/<sku>.webp (run `npm run images:ingest`), and falls back to a
+ * labelled illustration until then.
  *
- * These are drawings, not photographs, and are labelled as such — a generated
- * image dressed up as a photo would misrepresent what arrives in the box.
+ * The fallback is a drawing on purpose. A stock photo of "a gold chain" standing
+ * in for CH004 would show the customer something they aren't going to receive —
+ * which is how stores earn "item not as described" chargebacks.
  */
 export function ProductImage({
   sku,
@@ -15,6 +24,7 @@ export function ProductImage({
   title,
   className = "",
   compact = false,
+  priority = false,
 }: {
   sku: string;
   category: string;
@@ -22,7 +32,25 @@ export function ProductImage({
   title: string;
   className?: string;
   compact?: boolean;
+  priority?: boolean;
 }) {
+  const photo = PHOTOS[sku]?.[0];
+
+  if (photo) {
+    return (
+      <div className={`relative overflow-hidden bg-white ${className}`}>
+        <Image
+          src={`/products/${compact ? photo + "-sm" : photo}.webp`}
+          alt={title}
+          fill
+          sizes={compact ? "112px" : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"}
+          className="object-contain"
+          priority={priority}
+        />
+      </div>
+    );
+  }
+
   const cat = categories.find((c) => c.id === category);
   const seed = [...sku].reduce((a, ch) => a + ch.charCodeAt(0) * 7, 0);
   const inks = ["#00CFFF", "#FF2E93", "#FFC53D"];

@@ -5,9 +5,9 @@
  * pull from this file. Change a value here and it updates everywhere — which is
  * exactly what you want when a policy has to stay consistent across a site.
  *
- * ⚠️  ITEMS MARKED `TODO` MUST BE FILLED IN BEFORE YOU TAKE A REAL ORDER.
- *     A store with no verifiable address or phone number is the single most
- *     common reason US shoppers abandon a checkout on a site they don't know.
+ * The street address and phone number live under `privateContact` and are
+ * deliberately NOT rendered anywhere on the site. See docs/business-address.md
+ * for why that trade-off matters and what to do about it.
  */
 
 export const site = {
@@ -21,26 +21,32 @@ export const site = {
     sales: "sales@duvcollections.com",
     support: "info@duvcollections.com",
     admin: "tony@duvcollections.com",
-    // TODO: replace with your real published business phone number
-    phone: "TODO_PHONE",
-    phoneHref: "tel:TODO_PHONE",
-    // Hours shown next to the contact details so people know when to expect a reply
     hours: "Monday to Friday, 9am – 5pm Central",
     responseTime: "within 1 business day",
   },
 
-  address: {
-    // TODO: replace with your registered business address
-    line1: "TODO_STREET_ADDRESS",
-    city: "TODO_CITY",
-    state: "TODO_STATE",
-    postalCode: "TODO_ZIP",
-    country: "United States",
-    countryCode: "US",
+  /**
+   * PRIVATE — never rendered on any page.
+   *
+   * Kept here because Stripe verification, tax registration and shipping labels
+   * all need it, and because one source of truth beats it living in three places.
+   * Nothing in `src/` reads these fields into the UI; see the note in
+   * docs/business-address.md before changing that.
+   */
+  privateContact: {
+    phone: "972-400-3117",
+    address: {
+      line1: "300 Golden Sands Ln",
+      city: "Princeton",
+      state: "TX",
+      postalCode: "75407",
+      country: "United States",
+      countryCode: "US",
+    },
   },
 
-  // TODO: the US state your LLC is formed in — governs your terms and your sales tax
-  governingState: "TODO_STATE",
+  /** The US state the LLC is formed in — governs the Terms and sales tax nexus. */
+  governingState: "Texas",
 
   policy: {
     shippingFlatRate: 5.99,
@@ -68,5 +74,4 @@ export const money = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 /** True when a placeholder is still in place — used to warn you in development. */
-export const hasPlaceholders = () =>
-  JSON.stringify(site).includes("TODO_");
+export const hasPlaceholders = () => JSON.stringify(site).includes("TODO_");

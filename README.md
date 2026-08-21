@@ -43,10 +43,25 @@ git add . && git commit -m "Update stock" && git push
 
 ## Product images
 
-Products currently show illustrations, not photographs — clearly labelled as such,
-because a generated image dressed as a photo misrepresents what ships. When you
-have real photos, add them at `public/products/<sku>.jpg` and swap the tile in
-`src/components/ProductImage.tsx` for `next/image`.
+```bash
+# 1. drop photos in inventory/photos/ — filename must contain the SKU
+# 2.
+npm run images:ingest
+```
+
+Each photo is resized to a 1400px square on white, converted to WebP, given a
+600px thumbnail, and recorded in the manifest. Any product without a photo keeps
+its illustration, so the site never breaks halfway through a photo shoot.
+
+The fallback is a drawing on purpose. A stock photo of "a gold chain" standing in
+for CH004 shows the customer something they will not receive — that is how a store
+collects "item not as described" chargebacks.
+
+## Business address
+
+Your street address and phone are in `src/lib/site.ts` under `privateContact` and
+are **never rendered**. See `docs/business-address.md` for the trade-offs and how
+to publish a virtual business address instead when you want to.
 
 ## Business details
 
