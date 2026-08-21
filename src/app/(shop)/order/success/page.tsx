@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { ClearCart } from "./ClearCart";
+import { orderTrackingLink, nowMs } from "@/lib/order-token";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Order confirmed", robots: { index: false } };
+
+// The tracking link is minted per order, so this page can never be cached.
+export const dynamic = "force-dynamic";
 
 export default async function Success({
   searchParams,
@@ -12,6 +16,15 @@ export default async function Success({
   searchParams: Promise<{ session_id?: string }>;
 }) {
   const { session_id } = await searchParams;
+
+  // Signed here rather than in the browser: the token is what makes the link a
+  // capability, and a client that could mint one could mint one for any order.
+  // Falls back to the plain lookup page if signing is unavailable, because a
+  // 500 on the page that says "your payment went through" is the worst possible
+  // place to show one.
+  const trackHref = session_id?.startsWith("cs_")
+    ? await orderTrackingLink("", session_id, nowMs())
+    : "/orders";
 
   return (
     <>
@@ -81,7 +94,7 @@ export default async function Success({
             Keep shopping
           </Link>
           <Link
-            href="/orders"
+            href={trackHref}
             className="rounded-full border-2 border-duv-plum px-7 py-[12px] text-[15px] font-bold text-duv-plum hover:border-duv-violet hover:text-duv-violet"
           >
             Track this order

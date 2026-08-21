@@ -48,11 +48,13 @@ export async function POST(req: NextRequest) {
     to: order.email,
     name: order.name,
     orderRef: order.ref,
+    sessionId: order.id,
     carrier,
     tracking: tracking.trim(),
     trackingUrl: trackingUrl(carrier, tracking),
     items: order.items.map((i) => ({ title: i.title, qty: i.qty })),
     total: order.total,
+    nowMs: Date.now(),
   });
 
   // The order is already marked shipped — a failed email must not undo that.

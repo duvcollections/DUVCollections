@@ -21,15 +21,25 @@ export function Header() {
     <>
       {/* Standing promise bar — shipping terms stated before anyone clicks a product */}
       <div className="bg-duv-plum text-white">
-        <p className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-[12.5px] font-medium">
-          <span>
-            Free US shipping over {money(site.policy.freeShippingThreshold)}
-          </span>
-          <span aria-hidden="true" className="text-duv-faint">•</span>
-          <span>Flat {money(site.policy.shippingFlatRate)} otherwise</span>
-          <span aria-hidden="true" className="text-duv-faint">•</span>
-          <span>{site.policy.returnWindowDays}-day returns</span>
-        </p>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-[12.5px] font-medium sm:justify-between">
+          <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <span>
+              Free US shipping over {money(site.policy.freeShippingThreshold)}
+            </span>
+            <span aria-hidden="true" className="text-duv-faint">•</span>
+            <span>Flat {money(site.policy.shippingFlatRate)} otherwise</span>
+            <span aria-hidden="true" className="text-duv-faint">•</span>
+            <span>{site.policy.returnWindowDays}-day returns</span>
+          </p>
+          {/* Where people go when they are anxious about a parcel. Burying it in
+              the footer is how a shop earns "where is my order?" emails. */}
+          <Link
+            href="/orders"
+            className="font-bold text-duv-amber underline decoration-2 underline-offset-4 hover:text-white"
+          >
+            Track your order
+          </Link>
+        </div>
       </div>
 
       <header className="sticky top-0 z-50 border-b border-duv-line bg-duv-cream/85 backdrop-blur-md">
@@ -110,11 +120,18 @@ export function Header() {
                     key={n.href}
                     href={n.href}
                     onClick={() => setOpen(false)}
-                    className="border-b border-duv-line py-3 text-[15px] font-semibold text-duv-plum last:border-0"
+                    className="border-b border-duv-line py-3 text-[15px] font-semibold text-duv-plum"
                   >
                     {n.label}
                   </Link>
                 ))}
+                <Link
+                  href="/orders"
+                  onClick={() => setOpen(false)}
+                  className="py-3 text-[15px] font-semibold text-duv-violet"
+                >
+                  Track your order
+                </Link>
               </nav>
             </div>
           </div>

@@ -56,7 +56,10 @@ export const site = {
     returnWindowDays: 30,
     returnShippingPaidBy: "customer" as const,
     customItemsFinalSale: true,
-    restockingFee: 0,
+    /** Applied only to opened consumables we cannot resell — never to sealed stock. */
+    restockingFeePct: 15,
+    /** Days from us issuing an RMA to the parcel needing to be in the carrier's hands. */
+    rmaValidDays: 14,
     shipsTo: "United States",
   },
 

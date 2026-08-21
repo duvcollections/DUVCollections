@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { ContactForm } from "./ContactForm";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -29,9 +30,16 @@ export default function Contact() {
       <PageHeader
         eyebrow="Contact"
         title="A person will read this"
-        lede={`We are open ${site.contact.hours} and reply ${site.contact.responseTime}. No ticket queue, no chatbot.`}
+        lede={`We are open ${site.contact.hours} and reply ${site.contact.responseTime}. No ticket queue — a person reads every message.`}
       />
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+        <div className="mb-8 max-w-2xl">
+          <ContactForm />
+        </div>
+
+        <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint">
+          Or email us directly
+        </h2>
         <ul className="grid gap-5 md:grid-cols-2">
           {ROUTES.map((r) => (
             <li key={r.email} className="rounded-3xl border border-duv-line bg-white p-7">

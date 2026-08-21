@@ -2,30 +2,23 @@
 
 import { useState } from "react";
 import { money, site } from "@/lib/site";
+import type { CustomerOrderView } from "@/lib/orders-admin";
 
-type Found = {
-  ref: string;
-  placed: number;
-  status: string;
-  items: { title: string; qty: number }[];
-  subtotal: number;
-  shipping: number;
-  tax: number;
-  total: number;
-  carrier: string | null;
-  tracking: string | null;
-  trackingUrl: string | null;
-  shippedAt: string | null;
-  city: string | null;
-  state: string | null;
-};
+type Found = CustomerOrderView;
 
-export function OrderLookup() {
+/**
+ * `initial` arrives when the visitor followed a signed link from an email — the
+ * order is already resolved on the server, so the form starts collapsed and
+ * they see their parcel immediately instead of retyping a reference they were
+ * emailed in the first place.
+ */
+export function OrderLookup({ initial = null }: { initial?: Found | null }) {
   const [ref, setRef] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [order, setOrder] = useState<Found | null>(null);
+  const [order, setOrder] = useState<Found | null>(initial);
+  const [showForm, setShowForm] = useState(!initial);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,7 +48,17 @@ export function OrderLookup() {
 
   return (
     <>
-      <form onSubmit={submit} className="max-w-lg">
+      {!showForm && (
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
+          className="text-[14px] font-bold text-duv-violet underline decoration-2 underline-offset-4 hover:text-duv-pink"
+        >
+          Look up a different order
+        </button>
+      )}
+
+      <form onSubmit={submit} className={`max-w-lg ${showForm ? "" : "hidden"}`}>
         <div className="space-y-4">
           <label className="block">
             <span className="mb-1.5 block text-[13px] font-bold text-duv-plum">Order reference</span>

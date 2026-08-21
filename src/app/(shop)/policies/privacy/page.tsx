@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PolicyLayout, DraftNotice } from "@/components/PolicyLayout";
+import { PolicyLayout } from "@/components/PolicyLayout";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -15,7 +15,6 @@ export default function Privacy() {
       title="Privacy Policy"
       lede="Written against the systems this site actually runs on, not copied from a template. Every processor named below is one we genuinely use."
     >
-      <DraftNotice />
 
       <h2>Who we are</h2>
       <p>

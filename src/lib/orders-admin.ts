@@ -157,3 +157,49 @@ export async function markShipped(
 export function nowSeconds(): number {
   return Math.floor(Date.now() / 1000);
 }
+
+/**
+ * The subset of an order a customer may see.
+ *
+ * Deliberately narrower than the admin view: no phone number, no street
+ * address, no Stripe ids. City and state only — things the buyer typed in
+ * themselves — so a forwarded confirmation email discloses nothing new.
+ */
+export type CustomerOrderView = {
+  ref: string;
+  placed: number;
+  status: OrderStatus;
+  items: { title: string; qty: number }[];
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
+  carrier: string | null;
+  tracking: string | null;
+  trackingUrl: string | null;
+  shippedAt: string | null;
+  city: string | null;
+  state: string | null;
+};
+
+export function toCustomerView(
+  o: Order,
+  trackingUrlFor: (carrier: string, tracking: string) => string | null,
+): CustomerOrderView {
+  return {
+    ref: o.ref,
+    placed: o.created,
+    status: o.status,
+    items: o.items.map((i) => ({ title: i.title, qty: i.qty })),
+    subtotal: o.subtotal,
+    shipping: o.shipping,
+    tax: o.tax,
+    total: o.total,
+    carrier: o.carrier,
+    tracking: o.tracking,
+    trackingUrl: o.carrier && o.tracking ? trackingUrlFor(o.carrier, o.tracking) : null,
+    shippedAt: o.shippedAt,
+    city: o.address?.city ?? null,
+    state: o.address?.state ?? null,
+  };
+}

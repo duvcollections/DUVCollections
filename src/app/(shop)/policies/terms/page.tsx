@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PolicyLayout, DraftNotice } from "@/components/PolicyLayout";
+import { PolicyLayout } from "@/components/PolicyLayout";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -19,7 +19,6 @@ export default function Terms() {
       title="Terms & Conditions"
       lede="The agreement between you and us when you buy something. Written to be read, not to be impenetrable."
     >
-      <DraftNotice />
 
       <h2>1. Who these terms are with</h2>
       <p>
@@ -148,7 +147,15 @@ export default function Terms() {
       </p>
       <p>
         Nothing here excludes liability that cannot lawfully be excluded, including for death or
-        personal injury caused by our negligence, or for fraud.
+        personal injury caused by our negligence, or for fraud. Some states do not allow the
+        exclusion of certain warranties or incidental damages, so parts of this section may not
+        apply to you — and where your state&rsquo;s law gives you more, your state&rsquo;s law
+        wins.
+      </p>
+      <p>
+        Any claim connected to an order must be brought within <strong>one year</strong> of the
+        order date, except where your state sets a longer period that cannot be shortened by
+        agreement.
       </p>
 
       <h2>11. Warranty</h2>
@@ -170,27 +177,71 @@ export default function Terms() {
       <h2>13. Governing law and disputes</h2>
       <p>
         These terms are governed by the laws of the State of {state}, without regard to its
-        conflict-of-laws rules. Any dispute will be brought in the state or federal courts located
-        in {state}, and both of us consent to that jurisdiction.
-      </p>
-      <p>
-        Before filing anything, please email{" "}
-        <a href={`mailto:${site.contact.support}`}>{site.contact.support}</a>. Almost every
-        problem we have ever had was resolved this way in a day.
+        conflict-of-laws rules.
       </p>
 
-      <h2>14. Changes to these terms</h2>
+      <h3>13.1 Talk to us first</h3>
+      <p>
+        Before starting any formal process, email{" "}
+        <a href={`mailto:${site.contact.support}`}>{site.contact.support}</a> and give us{" "}
+        <strong>30 days</strong> to put it right. Almost every problem we have ever had was
+        resolved this way in a day, and this step is a condition of the two that follow.
+      </p>
+
+      <h3>13.2 Binding arbitration</h3>
+      <p>
+        <strong>
+          If we cannot resolve it, you and we agree that the dispute will be settled by binding
+          individual arbitration rather than in court.
+        </strong>{" "}
+        Arbitration is run by the American Arbitration Association under its Consumer Arbitration
+        Rules, seated in {state} or conducted remotely at your choice, and the arbitrator&rsquo;s
+        decision is final. Because this clause gives up your right to a judge and a jury, read it
+        before you buy.
+      </p>
+      <p>
+        Two things are carved out and always remain available to either of us: any claim that can
+        be brought in <strong>small claims court</strong>, and any request for an injunction to
+        stop misuse of intellectual property. Where the AAA rules make us responsible for the
+        filing fee on a consumer claim, we pay it.
+      </p>
+      <p>
+        <strong>You can opt out.</strong> Email{" "}
+        <a href={`mailto:${site.contact.support}`}>{site.contact.support}</a> with the words
+        &ldquo;arbitration opt-out&rdquo; and your order number within{" "}
+        <strong>30 days</strong> of your first order, and this section will not apply to you. It
+        costs you nothing and we will not treat you differently for it.
+      </p>
+
+      <h3>13.3 Where claims are brought</h3>
+      <p>
+        For anything not covered by arbitration, the state and federal courts located in {state}
+        have exclusive jurisdiction, and both of us consent to that.
+      </p>
+
+      <h2>14. Acceptance</h2>
+      <p>
+        Placing an order means you accept these terms and the Privacy, Payment, Shipping and
+        Returns policies as they stood at that moment. We show a link to all of them at checkout
+        so nobody can reasonably say they never saw them.
+      </p>
+
+      <h2>15. Changes to these terms</h2>
       <p>
         We may update these terms. The version in force for your order is the one published when
         you placed it, and changes are never applied retroactively. The current version is dated
         in the sidebar.
       </p>
 
-      <h2>15. Severability and entire agreement</h2>
+      <h2>16. Severability and entire agreement</h2>
       <p>
-        If any provision is found unenforceable, the rest stays in force. These terms, together
-        with the Privacy, Payment, Shipping and Returns policies, are the entire agreement
-        between us regarding your purchase.
+        If any provision is found unenforceable, it is limited or removed to the minimum extent
+        needed and the rest stays in force. Failing to enforce a term on one occasion is not a
+        waiver of it. You may not transfer your rights under these terms to someone else without
+        our written agreement; we may transfer ours if the business is sold, without changing
+        what you are owed. These terms, together with the Privacy, Payment, Shipping and Returns
+        policies, are the entire agreement between us regarding your purchase, and they replace
+        anything said in an email, a listing or a conversation beforehand.
       </p>
     </PolicyLayout>
   );

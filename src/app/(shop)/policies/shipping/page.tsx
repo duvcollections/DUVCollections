@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PolicyLayout, DraftNotice } from "@/components/PolicyLayout";
+import { PolicyLayout } from "@/components/PolicyLayout";
 import { site, money } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -17,7 +17,6 @@ export default function Shipping() {
       title="Shipping Policy"
       lede="What shipping costs, when your order leaves us, and what happens if it goes missing. No surprises at checkout."
     >
-      <DraftNotice />
 
       <h2>What shipping costs</h2>
       <table>
@@ -78,7 +77,9 @@ export default function Shipping() {
           <strong>Marked delivered but not received.</strong> Check with neighbours and your
           building office first — most turn up within 48 hours. If it does not, tell us within{" "}
           <strong>7 days</strong> of the delivery scan and we will file a claim and work out a
-          replacement or refund with you.
+          replacement or refund with you. Past 7 days the carrier will not accept a claim, and
+          neither can we. For high-value orders we recommend a shipping address where someone can
+          receive the parcel.
         </li>
         <li>
           <strong>Arrived damaged.</strong> Photograph the box and the contents before you throw
@@ -91,8 +92,16 @@ export default function Shipping() {
       <p>
         We ship to the address you enter at checkout, exactly as entered. If it is wrong and the
         package is returned to us, we will re-ship it once you cover the second postage. If it is
-        wrong and the package is delivered to that wrong address, we cannot recover it. Please
-        check your address before paying — it is the single most common cause of a lost order.
+        wrong and the package is delivered to that wrong address,{" "}
+        <strong>we cannot recover it and cannot refund it</strong> — the parcel went where you
+        told us to send it. Please check your address before paying; it is the single most common
+        cause of a lost order.
+      </p>
+      <p>
+        Some carriers leave parcels without a signature. Where you have given delivery
+        instructions to a carrier directly — leave with a neighbour, leave in a porch, leave in a
+        safe place — the delivery is complete when the carrier follows them, and what happens
+        afterwards is outside what we can claim for.
       </p>
       <p>
         Need to correct an address after ordering? Email us immediately. If we have not printed

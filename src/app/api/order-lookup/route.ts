@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findOrderForCustomer } from "@/lib/orders-admin";
+import { findOrderForCustomer, toCustomerView } from "@/lib/orders-admin";
 import { trackingUrl } from "@/lib/email";
 
 /**
@@ -52,24 +52,5 @@ export async function POST(req: NextRequest) {
   if (!order) return notFound;
 
   // Only what the buyer already knows. No phone, no internal ids.
-  return NextResponse.json({
-    found: true,
-    order: {
-      ref: order.ref,
-      placed: order.created,
-      status: order.status,
-      items: order.items.map((i) => ({ title: i.title, qty: i.qty })),
-      subtotal: order.subtotal,
-      shipping: order.shipping,
-      tax: order.tax,
-      total: order.total,
-      carrier: order.carrier,
-      tracking: order.tracking,
-      trackingUrl:
-        order.carrier && order.tracking ? trackingUrl(order.carrier, order.tracking) : null,
-      shippedAt: order.shippedAt,
-      city: order.address?.city ?? null,
-      state: order.address?.state ?? null,
-    },
-  });
+  return NextResponse.json({ found: true, order: toCustomerView(order, trackingUrl) });
 }

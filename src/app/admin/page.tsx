@@ -3,7 +3,8 @@ import { listOrders, nowSeconds } from "@/lib/orders-admin";
 import { allProducts, availability } from "@/lib/catalog";
 import { dbAvailable } from "@/lib/db";
 import { money } from "@/lib/site";
-import { isAdmin } from "@/lib/access";
+import { isAdmin, requireAdmin } from "@/lib/access";
+import { TestEmailButton } from "./TestEmailButton";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ export default async function AdminHome() {
   // Defence in depth: the layout renders the sign-in notice, but without this
   // an unauthorised request would still run the queries below.
   if (!(await isAdmin())) return null;
+  const { email: adminEmail } = await requireAdmin();
   const [orders, products, hasDb] = await Promise.all([
     listOrders(100).catch(() => []),
     allProducts(),
@@ -87,6 +89,10 @@ export default async function AdminHome() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-12">
+        <TestEmailButton to={adminEmail} />
       </section>
     </>
   );

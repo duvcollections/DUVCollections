@@ -37,7 +37,22 @@ go in the Cloudflare dashboard under Settings → Variables and Secrets, and in
 - Admin at `/admin`, behind Cloudflare Access: order list and detail, mark-as-shipped
   with tracking email, product create/edit/archive with an audit trail, sales summary
   that separates revenue from tax held for Texas
-- Customer order lookup at `/orders` — order reference **and** email, both required
+- Customer order lookup at `/orders` — order reference **and** email, both required,
+  plus signed one-click links in the confirmation and shipping emails so nobody has to type it
+- Contact form that emails `info@` with honeypot, fill-time and rate-limit spam defences
+- Scripted help widget that tracks orders and answers policy questions from `site.ts` —
+  no language model, no per-message cost, and it hands off rather than inventing an answer
+- Carrier auto-detection from the tracking number, so a mismatched carrier can't ship a dead link
+
+## Layout structure
+
+Storefront routes live in the `(shop)` route group, which owns the header, footer, cart provider
+and help widget. `/admin` sits outside it with its own chrome. That split is why the dashboard
+doesn't render a shop nav and a Cart button, and why admin pages don't load the catalogue.
+
+`not-found.tsx` is deliberately self-contained — Next serialises the not-found tree into every
+page's payload, so importing the real header there would ship the cart and the whole catalogue
+with every response.
 
 ## Managing inventory
 

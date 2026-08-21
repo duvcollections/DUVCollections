@@ -1,11 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { CartProvider } from "@/lib/cart";
 import { site } from "@/lib/site";
-import { getProducts } from "@/lib/catalog";
 
 // Self-hosted: the storefront makes no third-party font request, which keeps
 // the page fast and keeps visitor IPs off someone else's server.
@@ -59,52 +55,17 @@ export const viewport: Viewport = {
 };
 
 /**
- * Organization structured data. This is what lets Google show your business
- * name, logo and contact details rather than guessing them — and it is one of
- * the things small stores almost always skip.
+ * Root layout: document shell only.
+ *
+ * The shop chrome (header, footer, cart) lives in `(shop)/layout.tsx` and the
+ * admin has its own. Keeping them apart is why /admin no longer renders a
+ * storefront nav and a Cart button above the dashboard — and why admin pages
+ * no longer load the whole catalogue just to hydrate a cart nobody uses there.
  */
-const orgLd = {
-  "@context": "https://schema.org",
-  "@type": "OnlineStore",
-  name: site.name,
-  legalName: site.legalName,
-  url: site.url,
-  logo: `${site.url}/brand/icon/duv-mark-512.png`,
-  email: site.contact.support,
-  foundingDate: site.founded,
-  areaServed: "US",
-  currenciesAccepted: "USD",
-  paymentAccepted: "Credit Card, Debit Card, Apple Pay, Google Pay",
-  sameAs: [site.external.ebay],
-};
-
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Only the fields the cart needs — the full catalogue never ships to the browser.
-  const catalog = (await getProducts()).map((p) => ({
-    sku: p.sku,
-    slug: p.slug,
-    title: p.title,
-    price: p.price,
-    category: p.category,
-    art: p.art,
-  }));
-
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${jakarta.variable} ${gabarito.variable}`}>
-      <body className="font-sans antialiased">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
-        />
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        <CartProvider catalog={catalog}>
-          <Header />
-          <main id="main">{children}</main>
-          <Footer />
-        </CartProvider>
-      </body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }

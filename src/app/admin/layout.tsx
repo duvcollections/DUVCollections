@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   } catch (err) {
     const message = err instanceof AccessError ? err.message : "Unexpected error.";
     return (
-      <div className="mx-auto max-w-xl px-6 py-24">
+      <main id="main" className="mx-auto max-w-xl px-6 py-24">
         <h1 className="font-display text-3xl font-extrabold tracking-tight">Not signed in</h1>
         <p className="mt-4 text-[15px] leading-relaxed text-duv-muted">{message}</p>
         <p className="mt-4 rounded-2xl border border-duv-line bg-white p-5 text-[13.5px] leading-relaxed text-duv-muted">
@@ -31,12 +31,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Link href="/" className="mt-8 inline-block text-[14px] font-bold text-duv-violet underline underline-offset-4">
           Back to the shop
         </Link>
-      </div>
+      </main>
     );
   }
 
   return (
     <div className="min-h-dvh bg-duv-shell">
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
       <header className="border-b border-duv-line bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3.5 sm:px-6">
           <Link href="/admin" className="flex items-center gap-2.5">
@@ -64,7 +67,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
         </div>
       </header>
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">{children}</div>
+      <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        {children}
+      </main>
     </div>
   );
 }

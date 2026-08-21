@@ -50,12 +50,20 @@ export function CartProvider({
   // it, and the setState below is deliberate. Wrapped in try/catch because
   // storage throws outright in some privacy modes.
   useEffect(() => {
+    // An empty catalogue means the lookup failed, not that every saved line is
+    // invalid. Filtering against it would drop the whole cart and the persist
+    // effect below would then write the empty result back to storage — the
+    // customer's basket gone for good because one query hiccuped.
+    if (catalog.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- see note above
+      setReady(true);
+      return;
+    }
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- see note above
           setLines(
             parsed
               .filter((l) => l && typeof l.sku === "string" && Number.isFinite(l.qty))

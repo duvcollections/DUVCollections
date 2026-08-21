@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PolicyLayout, DraftNotice } from "@/components/PolicyLayout";
+import { PolicyLayout } from "@/components/PolicyLayout";
 import { site, money } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -17,7 +17,6 @@ export default function Returns() {
       title="Returns & Refunds"
       lede={`${P.returnWindowDays} days to change your mind on unused stock. Defective or misprinted goods are replaced free, always, whatever the timeline says.`}
     >
-      <DraftNotice />
 
       <h2>The short version</h2>
       <ul>
@@ -26,7 +25,11 @@ export default function Returns() {
         </li>
         <li>Items must be unused, unopened where sealed, and in their original packaging.</li>
         <li>You pay return postage unless the item was faulty, damaged or wrong.</li>
-        <li>No restocking fee. Refunds go back to your original payment method.</li>
+        <li>
+          <strong>No restocking fee on sealed stock.</strong> Opened consumables carry a{" "}
+          {P.restockingFeePct}% restocking fee when we accept them back at all — see below.
+        </li>
+        <li>Refunds go back to your original payment method. We do not refund to store credit or a different card.</li>
         <li>Custom-printed items are final sale — <em>except</em> when we got them wrong.</li>
       </ul>
 
@@ -43,13 +46,21 @@ export default function Returns() {
         </li>
         <li>
           Pack the item securely, write the RMA number on the outside, and send it with a tracked
-          service. Keep the tracking number.
+          service within <strong>{P.rmaValidDays} days</strong> of the RMA being issued. Keep the
+          tracking number — <strong>proof of delivery back to us is your responsibility</strong>,
+          and we cannot refund a parcel that never arrives.
         </li>
         <li>
           We inspect on arrival and refund within <strong>3 business days</strong>. Your bank may
           take a further 5–10 days to show it.
         </li>
       </ol>
+      <p>
+        Returns arriving without an RMA number, after the {P.rmaValidDays}-day window, or in a
+        condition that does not match what was described, may be refused or refunded in part. We
+        will always email you photographs and an explanation before we do either — you will never
+        find out by seeing a smaller number than you expected.
+      </p>
 
       <h2>What we refund</h2>
       <table>
@@ -86,6 +97,19 @@ export default function Returns() {
         deduct the {money(P.shippingFlatRate)} flat rate from the refund.
       </p>
 
+      <h2>Restocking fee on opened consumables</h2>
+      <p>
+        Film, powder and ink that has been opened cannot go back on the shelf as new. Where we
+        agree to accept an opened consumable back at all — as a goodwill exception, not as a
+        right — the refund is the item price less a <strong>{P.restockingFeePct}% restocking
+        fee</strong>, because the stock is written off.
+      </p>
+      <p>
+        This never applies to a sealed item, and it never applies when the fault is ours. If the
+        product is defective, contaminated, mislabelled or not what you ordered, you get the full
+        amount back and we pay the postage both ways.
+      </p>
+
       <h2>What cannot be returned</h2>
       <ul>
         <li>
@@ -101,6 +125,14 @@ export default function Returns() {
           earrings. This is a hygiene rule, not a commercial one, and we cannot make exceptions.
         </li>
         <li>Items returned after {P.returnWindowDays} days, or without an RMA number.</li>
+        <li>
+          Items damaged after delivery — dropped, misused, run through a press at the wrong
+          temperature, or stored somewhere hot or damp.
+        </li>
+        <li>
+          Free items and gifts-with-purchase. If the qualifying item goes back, the free item goes
+          back with it or its value is deducted.
+        </li>
       </ul>
 
       <h3>The exception that always applies</h3>
@@ -128,6 +160,16 @@ export default function Returns() {
         assortments. Designs and colours vary between packs and the photographs are
         representative rather than exact. Variation within an assortment is not a defect. Missing
         pieces or broken items are.
+      </p>
+
+      <h2>Refused and undeliverable parcels</h2>
+      <p>
+        If a parcel is refused at the door, or comes back to us because the address was wrong or
+        nobody collected it from the depot, we refund the item price less the outbound shipping we
+        actually paid — including on orders that shipped free, where that cost was ours rather
+        than nothing. Ask us to send it again and it ships at the normal rate. This is not a
+        penalty; it is the carrier&rsquo;s bill, which does not go away because the parcel came
+        back.
       </p>
 
       <h2>Cancelling an order</h2>

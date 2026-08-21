@@ -19,6 +19,11 @@ const COMPANY = [
   { href: "/orders", label: "Track your order" },
 ];
 
+/** Outside the component: calling an impure function during render isn't allowed. */
+function currentYear(): number {
+  return new Date().getFullYear();
+}
+
 export function Footer() {
   return (
     <footer className="mt-24 bg-duv-plum text-white">
@@ -96,10 +101,21 @@ export function Footer() {
               {site.contact.hours} · We reply {site.contact.responseTime}
             </span>
           </div>
-          <p className="text-[12.5px] text-white/50">
-            © {new Date().getFullYear()} {site.legalName}. All rights reserved. Policies last
-            updated {site.policiesLastUpdated}.
-          </p>
+          <div className="flex flex-col gap-2 lg:items-end">
+            <p className="text-[12.5px] text-white/50">
+              © {currentYear()} {site.legalName}. All rights reserved. Policies last
+              updated {site.policiesLastUpdated}.
+            </p>
+            {/* Staff only. The page behind this is protected by Cloudflare Access,
+                so the link gives away nothing — an unauthorised visitor gets a
+                login screen, never a dashboard. */}
+            <Link
+              href="/admin"
+              className="text-[12.5px] text-white/40 underline underline-offset-4 transition-colors hover:text-white/80"
+            >
+              Staff login
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

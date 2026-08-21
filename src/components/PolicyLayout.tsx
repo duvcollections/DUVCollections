@@ -79,20 +79,3 @@ export function PolicyLayout({
     </>
   );
 }
-
-/** Shown at the top of the legal pages while they are still unreviewed. */
-export function DraftNotice() {
-  return (
-    <div className="mb-8 rounded-2xl border-2 border-duv-amber bg-tint-jewelry p-5">
-      <p className="text-[13.5px] font-bold text-duv-plum">
-        Draft — not yet reviewed by an attorney
-      </p>
-      <p className="mt-1.5 text-[13.5px] leading-relaxed text-duv-plum/75">
-        This policy was written to match how DUV Collections actually operates, and it is
-        specific rather than generic. It is still not legal advice. Have a lawyer licensed in
-        your state read it before you rely on it, and fill in every bracketed placeholder first.
-        Remove this notice once that is done.
-      </p>
-    </div>
-  );
-}

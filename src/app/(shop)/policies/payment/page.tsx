@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PolicyLayout, DraftNotice } from "@/components/PolicyLayout";
+import { PolicyLayout } from "@/components/PolicyLayout";
 import { site, money } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -15,7 +15,6 @@ export default function Payment() {
       title="Payment Policy"
       lede="What we charge, when we charge it, and exactly who touches your card details. The short answer to the last one: not us."
     >
-      <DraftNotice />
 
       <h2>How we take payment</h2>
       <p>
@@ -122,9 +121,20 @@ export default function Payment() {
       </p>
       <p>
         We take fraud seriously in both directions. We respond to every chargeback with the order
-        record, delivery tracking, and proof of proof-approval for custom jobs. Where a chargeback
-        is filed in bad faith on goods that were delivered as described, we contest it and may
-        decline future orders from that account.
+        record, the carrier&rsquo;s delivery scan, the IP and timestamp of the order, and the
+        signed proof approval for custom jobs. Where a chargeback is filed on goods that were
+        delivered as described, we contest it with that evidence, and we may decline future
+        orders from that account and that address.
+      </p>
+      <p>
+        Filing a dispute instead of asking us does not get you a faster answer — it freezes the
+        order for weeks while a bank reads paperwork. Raising it with us first costs you nothing
+        and keeps every option open, including the dispute.
+      </p>
+      <p>
+        We may cancel and refund an order before dispatch where the billing and shipping details
+        do not match, where an address fails verification, or where the order pattern matches
+        known card testing. This is rare, it is never personal, and you get every cent back.
       </p>
 
       <h2>Pricing errors</h2>
