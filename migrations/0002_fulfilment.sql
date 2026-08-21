@@ -20,3 +20,15 @@ CREATE TABLE IF NOT EXISTS low_stock_notified (
   notified_at TEXT NOT NULL DEFAULT (datetime('now')),
   at_level    INTEGER NOT NULL
 );
+
+-- One row per abandoned-cart reminder sent.
+--
+-- Stripe can deliver `checkout.session.expired` more than once, and a customer
+-- who abandons three carts in a week should not get three near-identical
+-- emails. The session id as primary key makes a repeat delivery a no-op by
+-- construction, exactly like stock_applied.
+CREATE TABLE IF NOT EXISTS cart_reminded (
+  session_id  TEXT PRIMARY KEY,
+  email       TEXT NOT NULL,
+  reminded_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

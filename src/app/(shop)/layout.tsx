@@ -4,6 +4,7 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 import { CartProvider } from "@/lib/cart";
 import { getProducts } from "@/lib/catalog";
 import { site } from "@/lib/site";
+import { Analytics } from "@/components/Analytics";
 
 /**
  * Organization structured data. This is what lets Google show your business
@@ -51,6 +52,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
         <Footer />
         <ChatWidget />
       </CartProvider>
+      <Analytics />
     </>
   );
 }

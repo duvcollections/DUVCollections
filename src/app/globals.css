@@ -28,6 +28,25 @@
   --color-duv-cream: #fffcf8;
   --color-duv-shell: #fbf6f2;
 
+  /* ---- Accessible text variants ------------------------------------------
+   * The brand inks above are display colours: vivid, and correct for large
+   * headings, fills and rules. At small sizes several of them fail WCAG AA
+   * (4.5:1) on our light grounds — measured, not guessed:
+   *
+   *   pink  #ff2e93 on shell = 3.23   faint #9b8ab8 on white = 3.12
+   *   green #16a34a on white = 3.30
+   *
+   * These are the versions to use for *text*. Same hue, enough contrast to
+   * read. Keep the originals for anything that isn't small type.
+   */
+  --color-duv-pink-ink: #de006c;   /* 4.53+ on white, cream and shell */
+  --color-duv-pink-deep: #c4005f;  /* 5.98 behind white text, for buttons */
+  --color-duv-faint-ink: #7d67a3;  /* 4.51+ on white, cream and shell */
+  --color-duv-green-ink: #117c38;  /* 4.94 on shell, 4.50 on mint */
+  --color-duv-on-plum: #b9a8d4;    /* 6.98 on plum, for footer secondary text */
+  --color-duv-coral-deep: #c93f16; /* 4.99 behind white text — hover for pink buttons */
+  --color-duv-pink-plum: #ff5ba8;  /* 5.31 on plum — pink text on the dark footer */
+
   --color-tint-printing: #dff6ff;
   --color-tint-jewelry: #fff1cc;
   --color-tint-apparel: #ffe4d6;
@@ -193,3 +212,42 @@ body {
 }
 .prose-duv th { font-weight: 700; color: var(--color-duv-plum); }
 .prose-duv td { color: var(--color-duv-muted); }
+
+/* ------------------------------------------------------------------- print */
+
+/*
+ * Packing slips are printed from the browser rather than generated as PDFs.
+ * These rules strip the admin chrome so the sheet that comes out of the printer
+ * is the document itself, with no navigation, no buttons and no wasted ink.
+ */
+@media print {
+  /* The admin header/nav and anything else marked print:hidden. */
+  header:not(article header),
+  nav,
+  .skip-link {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    /* Printers render dark-on-white; forcing it avoids grey-on-grey output. */
+    color: #000 !important;
+  }
+
+  /* Backgrounds and borders are structural on the slip, so keep them. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Never split an item row across two sheets. */
+  tr,
+  address {
+    break-inside: avoid;
+  }
+
+  @page {
+    margin: 0.5in;
+  }
+}

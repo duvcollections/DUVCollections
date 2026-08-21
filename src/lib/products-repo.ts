@@ -334,3 +334,26 @@ export async function lowStockCrossings(moves: StockMove[]): Promise<
 
   return crossed;
 }
+
+/* --------------------------------------------------------- abandoned carts */
+
+/**
+ * Claim the right to send one abandoned-cart reminder for this session.
+ *
+ * Returns false when a reminder has already gone out — the normal case on a
+ * Stripe redelivery, not an error. Same shape as the stock claim: the insert
+ * itself is the lock, so two concurrent deliveries cannot both win.
+ */
+export async function claimCartReminder(sessionId: string, email: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    const res = await db
+      .prepare("INSERT OR IGNORE INTO cart_reminded (session_id, email) VALUES (?, ?)")
+      .bind(sessionId, email)
+      .run();
+    return (res as { meta?: { changes?: number } })?.meta?.changes !== 0;
+  } catch {
+    return false;
+  }
+}

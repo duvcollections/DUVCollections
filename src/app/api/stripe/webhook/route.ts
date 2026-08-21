@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripeClient, cryptoProvider, secret } from "@/lib/stripe";
-import { sendConfirmationEmail, sendLowStockEmail } from "@/lib/email";
-import { applyStockForOrder, lowStockCrossings } from "@/lib/products-repo";
+import { sendConfirmationEmail, sendLowStockEmail, sendAbandonedCartEmail } from "@/lib/email";
+import { applyStockForOrder, lowStockCrossings, claimCartReminder } from "@/lib/products-repo";
 import { site } from "@/lib/site";
 
 
@@ -118,6 +118,64 @@ export async function POST(req: NextRequest) {
         } catch (err) {
           console.error("[order] confirmation email threw:", err);
         }
+      }
+      break;
+    }
+
+    case "checkout.session.expired": {
+      const s = event.data.object;
+      const email = s.customer_details?.email;
+
+      // No email means they never got far enough to give us one. There is
+      // nobody to write to, and that is the end of it.
+      if (!email) {
+        console.log(`[cart] ${s.id} expired with no email — nothing to send`);
+        break;
+      }
+
+      try {
+        // Claim first. A redelivered event must not produce a second email.
+        if (!(await claimCartReminder(s.id, email))) {
+          console.log(`[cart] ${s.id} already reminded — skipping`);
+          break;
+        }
+
+        const full = await stripe.checkout.sessions.retrieve(s.id, { expand: ["line_items"] });
+        const items =
+          full.line_items?.data.map((li) => ({
+            title: li.description ?? "Item",
+            qty: li.quantity ?? 1,
+          })) ?? [];
+
+        // An expired session with no line items is not worth an email.
+        if (items.length === 0) {
+          console.log(`[cart] ${s.id} expired with no items — skipping`);
+          break;
+        }
+
+        // Carry the basket in the link. The cart lives in localStorage, so a
+        // bare /cart link shows an empty basket to anyone who opens the email
+        // on their phone after adding items on a laptop.
+        const restore = parseSkus(s.metadata?.skus);
+        const recoveryUrl =
+          restore.length > 0
+            ? `${site.url}/cart?restore=${encodeURIComponent(
+                restore.map((l) => `${l.sku}x${l.qty}`).join(","),
+              )}`
+            : `${site.url}/cart`;
+
+        const result = await sendAbandonedCartEmail({
+          to: email,
+          name: s.customer_details?.name ?? null,
+          items,
+          recoveryUrl,
+        });
+        if (!result.ok) console.error(`[cart] reminder failed: ${result.error}`);
+        else console.log(`[cart] reminder sent for ${s.id}`);
+      } catch (err) {
+        // Same rule as everywhere else here: never let this reach the return
+        // below as a non-2xx, or Stripe retries the event for days.
+        console.error("[cart] abandoned-cart handling threw:", err);
       }
       break;
     }

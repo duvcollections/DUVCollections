@@ -351,3 +351,67 @@ export function trackingUrl(carrier: string, tracking: string): string | null {
     default: return null;
   }
 }
+
+/* ------------------------------------------------------------ abandoned cart */
+
+export type AbandonedCartEmail = {
+  to: string;
+  name: string | null;
+  items: { title: string; qty: number }[];
+  recoveryUrl: string;
+};
+
+/**
+ * Sent when a checkout is started and not finished.
+ *
+ * This one is different from every other message in this file, and the
+ * difference matters legally as well as ethically: the others are transactional
+ * (a person bought something and we are telling them about it), while this is a
+ * marketing message to someone who did NOT complete a purchase. Under CAN-SPAM
+ * that obliges us to identify the sender with a physical postal address and to
+ * offer a way out — so this message carries its own footer rather than the
+ * shared one, which says "this is not a mailing list".
+ *
+ * Stripe gives us the email only when the customer actually typed one before
+ * leaving, so this can only ever reach people who handed it over on our
+ * checkout page.
+ */
+export async function sendAbandonedCartEmail(o: AbandonedCartEmail): Promise<SendResult> {
+  const resend = await client();
+  if (!resend) return { ok: false, error: NOT_CONFIGURED };
+
+  const { address } = site.privateContact;
+  const rows = o.items
+    .map(
+      (i) => `<tr>
+        <td style="padding:6px 0;color:${INK.muted}">${escapeHtml(i.title)}</td>
+        <td style="padding:6px 0;text-align:right;color:${INK.plum};font-weight:600">×${i.qty}</td>
+      </tr>`,
+    )
+    .join("");
+
+  const html = `<!doctype html><html><body style="margin:0;background:${INK.shell};
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:${INK.plum}">
+    <div style="max-width:560px;margin:0 auto;padding:40px 24px">
+      <p style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:${INK.pink};margin:0">
+        ${escapeHtml(site.name)}</p>
+      <h1 style="font-size:30px;line-height:1.1;letter-spacing:-.02em;margin:14px 0 0">
+        You left something behind</h1>
+      <p style="font-size:16px;line-height:1.6;color:${INK.muted}">
+        ${o.name ? `Hi ${escapeHtml(o.name.split(" ")[0])}, y` : "Y"}our cart is still here.
+        Nothing has been charged, and we've held it for you.</p>
+      <table style="width:100%;border-collapse:collapse;margin:24px 0;font-size:14px">${rows}</table>
+      <div style="margin:28px 0">${button(o.recoveryUrl, "Finish your order")}</div>
+      <p style="font-size:13px;color:${INK.muted};line-height:1.7">
+        Stock isn't reserved, so anything low may sell before you get back.
+        Questions? Just reply to this email.</p>
+      <p style="font-size:11px;color:${INK.faint};margin-top:32px;line-height:1.6">
+        ${escapeHtml(site.legalName)}, ${escapeHtml(address.line1)},
+        ${escapeHtml(address.city)}, ${escapeHtml(address.state)} ${escapeHtml(address.postalCode)}<br>
+        You're receiving this one-off reminder because you entered your email at our checkout
+        and didn't finish. We won't email you about this cart again.
+        To hear nothing further, reply with "unsubscribe" and we'll remove you.</p>
+    </div></body></html>`;
+
+  return send(resend, { to: o.to, subject: "You left something in your cart", html });
+}

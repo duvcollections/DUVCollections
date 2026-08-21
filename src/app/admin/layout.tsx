@@ -11,7 +11,8 @@ const NAV = [
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/products", label: "Products" },
   { href: "/admin/shipping", label: "Shipping" },
-            { href: "/admin/sales", label: "Sales" },
+  { href: "/admin/sales", label: "Sales" },
+  { href: "/admin/discounts", label: "Discounts" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -62,7 +63,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </nav>
           <div className="ml-auto flex items-center gap-4 text-[13px]">
             <span className="text-duv-muted">{who}</span>
-            <Link href="/" className="font-semibold text-duv-violet hover:text-duv-pink">
+            <Link href="/" className="font-semibold text-duv-violet hover:text-duv-pink-ink">
               View shop ↗
             </Link>
           </div>

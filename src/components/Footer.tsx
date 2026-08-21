@@ -77,7 +77,7 @@ export function Footer() {
           </nav>
 
           <nav aria-labelledby="foot-policies">
-            <h2 id="foot-policies" className="text-[11px] font-bold uppercase tracking-[0.16em] text-duv-pink">
+            <h2 id="foot-policies" className="text-[11px] font-bold uppercase tracking-[0.16em] text-duv-pink-plum">
               Policies
             </h2>
             <ul className="mt-4 flex flex-col gap-2.5 text-[14px]">
@@ -111,7 +111,7 @@ export function Footer() {
                 login screen, never a dashboard. */}
             <Link
               href="/admin"
-              className="text-[12.5px] text-white/40 underline underline-offset-4 transition-colors hover:text-white/80"
+              className="text-[12.5px] text-duv-on-plum underline underline-offset-4 transition-colors hover:text-white"
             >
               Staff login
             </Link>

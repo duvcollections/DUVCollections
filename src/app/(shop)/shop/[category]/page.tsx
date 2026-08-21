@@ -58,7 +58,7 @@ export default async function CategoryPage({ params }: { params: Promise<Params>
               aria-current="true"
               className={`${CHIP_BASE} border-duv-plum bg-duv-plum text-white`}
             >
-              All <span className="ml-1 opacity-60">{all.length}</span>
+              All <span className="ml-1 text-white/70">{all.length}</span>
             </a>
             {subs.map((s) => (
               <a
@@ -68,7 +68,7 @@ export default async function CategoryPage({ params }: { params: Promise<Params>
                 data-base={CHIP_BASE}
                 className={`${CHIP_BASE} border-duv-line bg-white text-duv-plum hover:border-duv-violet`}
               >
-                {s.label} <span className="ml-1 opacity-60">{s.count}</span>
+                {s.label} <span className="ml-1 text-duv-faint-ink">{s.count}</span>
               </a>
             ))}
           </div>
@@ -83,7 +83,7 @@ export default async function CategoryPage({ params }: { params: Promise<Params>
               className={`${CHIP_BASE} inline-flex items-center gap-2 border-duv-line bg-white text-duv-plum hover:border-duv-violet`}
             >
               <span data-lot-label="">Wholesale lots only</span>
-              <span className="opacity-60">{lotCount}</span>
+              <span className="text-duv-faint-ink">{lotCount}</span>
             </a>
           </div>
         )}

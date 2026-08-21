@@ -32,6 +32,33 @@ type CartState = {
 };
 
 const KEY = "duv.cart.v1";
+
+/**
+ * `SKU-A x2,SKU-B x1` in a URL, for the abandoned-cart email.
+ *
+ * Quantities are clamped and unknown SKUs are dropped by the caller, so a
+ * hand-edited link can only ever produce a cart the shop would have allowed
+ * anyway. Prices are never carried here — they are always looked up server-side
+ * at checkout.
+ */
+export function encodeCart(lines: { sku: string; qty: number }[]): string {
+  return lines.map((l) => `${l.sku}x${l.qty}`).join(",");
+}
+
+function parseRestore(raw: string): CartLine[] {
+  const out: CartLine[] = [];
+  const seen = new Set<string>();
+  for (const part of raw.split(",").slice(0, 40)) {
+    const at = part.lastIndexOf("x");
+    if (at < 1) continue;
+    const sku = part.slice(0, at);
+    const qty = Math.floor(Number(part.slice(at + 1)));
+    if (!sku || seen.has(sku) || !Number.isFinite(qty) || qty < 1) continue;
+    seen.add(sku);
+    out.push({ sku, qty: Math.min(99, qty) });
+  }
+  return out;
+}
 const Ctx = createContext<CartState | null>(null);
 
 export function CartProvider({
@@ -59,6 +86,26 @@ export function CartProvider({
       setReady(true);
       return;
     }
+    // A `?restore=` parameter wins over stored state. It is how the
+    // abandoned-cart email brings a basket back on a device that never had it —
+    // the cart lives in localStorage, so a bare link to /cart would show an
+    // empty basket to anyone reading their mail on a different machine.
+    try {
+      const restore = new URLSearchParams(window.location.search).get("restore");
+      if (restore) {
+        const fromLink = parseRestore(restore).filter((l) =>
+          catalog.some((p) => p.sku === l.sku),
+        );
+        if (fromLink.length > 0) {
+          setLines(fromLink);
+          setReady(true);
+          return;
+        }
+      }
+    } catch {
+      // Malformed parameter: fall through to whatever is in storage.
+    }
+
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {

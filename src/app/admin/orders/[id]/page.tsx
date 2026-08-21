@@ -22,9 +22,17 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      <Link href="/admin/orders" className="text-[13.5px] font-semibold text-duv-violet hover:text-duv-pink">
-        ← All orders
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Link href="/admin/orders" className="text-[13.5px] font-semibold text-duv-violet hover:text-duv-pink-ink">
+          ← All orders
+        </Link>
+        <Link
+          href={`/admin/orders/${o.id}/packing-slip`}
+          className="rounded-full border border-duv-line px-4 py-2 text-[13px] font-bold text-duv-muted hover:border-duv-violet hover:text-duv-violet"
+        >
+          Packing slip
+        </Link>
+      </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-4">
         <h1 className="font-display text-3xl font-extrabold tracking-[-0.025em]">
@@ -32,7 +40,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         </h1>
         <span
           className={`rounded-full px-3 py-1 text-[12.5px] font-bold ${
-            o.status === "shipped" ? "bg-duv-mint/25 text-duv-green" : "bg-duv-pink/12 text-duv-pink"
+            o.status === "shipped" ? "bg-duv-mint/25 text-duv-green-ink" : "bg-duv-pink/12 text-duv-pink-ink"
           }`}
         >
           {o.status === "shipped" ? "Shipped" : "Awaiting dispatch"}
@@ -73,7 +81,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         <div className="space-y-6">
           {/* ---- ship to ---- */}
           <div className="rounded-2xl border border-duv-line bg-white p-6">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint">Ship to</h2>
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint-ink">Ship to</h2>
             <address className="mt-3 text-[14.5px] not-italic leading-relaxed">
               <strong className="block">{o.name ?? "—"}</strong>
               {a ? (
@@ -90,14 +98,14 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
               )}
             </address>
             <div className="mt-4 space-y-1 border-t border-duv-line pt-3 text-[13.5px]">
-              {o.email && <a className="block text-duv-violet hover:text-duv-pink" href={`mailto:${o.email}`}>{o.email}</a>}
-              {o.phone && <a className="block text-duv-violet hover:text-duv-pink" href={`tel:${o.phone}`}>{o.phone}</a>}
+              {o.email && <a className="block text-duv-violet hover:text-duv-pink-ink" href={`mailto:${o.email}`}>{o.email}</a>}
+              {o.phone && <a className="block text-duv-violet hover:text-duv-pink-ink" href={`tel:${o.phone}`}>{o.phone}</a>}
             </div>
           </div>
 
           {o.tracking && (
             <div className="rounded-2xl border border-duv-line bg-white p-6">
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint">Tracking</h2>
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint-ink">Tracking</h2>
               <p className="mt-2 text-[13px] text-duv-muted">{o.carrier}</p>
               <p className="mt-1 break-all font-mono text-[15px] font-bold">{o.tracking}</p>
               {url && (
@@ -107,7 +115,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
                 </a>
               )}
               {o.shippedAt && (
-                <p className="mt-3 text-[12.5px] text-duv-faint">
+                <p className="mt-3 text-[12.5px] text-duv-faint-ink">
                   Marked shipped {new Date(o.shippedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
                 </p>
               )}
@@ -115,7 +123,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           )}
 
           <div className="rounded-2xl border border-duv-line bg-white p-6">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint">In Stripe</h2>
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint-ink">In Stripe</h2>
             <p className="mt-2 break-all font-mono text-[12px] text-duv-muted">{o.id}</p>
             <p className="mt-3 text-[13px] leading-relaxed text-duv-muted">
               Refunds are issued from the Stripe dashboard, not here — that keeps the money
@@ -132,7 +140,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
             )}
           </div>
 
-          <p className="px-2 text-[12.5px] leading-relaxed text-duv-faint">
+          <p className="px-2 text-[12.5px] leading-relaxed text-duv-faint-ink">
             Customers can look this order up themselves at {site.url}/orders using the reference
             and their email.
           </p>

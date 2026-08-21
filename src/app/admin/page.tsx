@@ -1,43 +1,83 @@
 import Link from "next/link";
 import { listOrders, nowSeconds } from "@/lib/orders-admin";
-import { allProducts, availability } from "@/lib/catalog";
+import { allProducts } from "@/lib/catalog";
 import { dbAvailable } from "@/lib/db";
 import { money } from "@/lib/site";
 import { adminOrNull } from "@/lib/access";
+import { dashboardStats, type TopProduct } from "@/lib/dashboard-stats";
+import {
+  StatCard,
+  RevenueTrend,
+  OrdersPerDay,
+  MoneySplit,
+} from "@/components/charts/DashboardCharts";
 import { TestEmailButton } from "./TestEmailButton";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminHome() {
+const WINDOWS = [
+  { days: 7, label: "7 days" },
+  { days: 30, label: "30 days" },
+  { days: 90, label: "90 days" },
+] as const;
+
+export default async function AdminHome({
+  searchParams,
+}: {
+  searchParams: Promise<{ w?: string }>;
+}) {
   // Defence in depth: the layout renders the sign-in notice, but without this
   // an unauthorised request would still run the queries below.
   const admin = await adminOrNull();
   if (!admin) return null;
-  const adminEmail = admin.email;
+
+  const { w } = await searchParams;
+  const windowDays = WINDOWS.find((x) => String(x.days) === w)?.days ?? 30;
+
   const [orders, products, hasDb] = await Promise.all([
-    listOrders(40).catch(() => []),
+    // Enough history for the 90-day view plus its comparison window.
+    listOrders(200).catch(() => []),
     allProducts(),
     dbAvailable(),
   ]);
 
   const now = nowSeconds();
-  const last30 = orders.filter((o) => now - o.created < 60 * 60 * 24 * 30);
-  const revenue30 = last30.reduce((n, o) => n + o.total, 0);
-  const unshipped = orders.filter((o) => o.status === "paid");
-  const lowStock = products.filter(
-    (p) => !p.archived && availability(p) !== "in-stock",
-  );
-
-  const stats = [
-    { label: "Awaiting dispatch", value: String(unshipped.length), href: "/admin/orders", tone: unshipped.length ? "#FF2E93" : "#2EE6A8" },
-    { label: "Orders, last 30 days", value: String(last30.length), href: "/admin/sales", tone: "#7B3FF2" },
-    { label: "Revenue, last 30 days", value: money(revenue30), href: "/admin/sales", tone: "#00CFFF" },
-    { label: "Low or out of stock", value: String(lowStock.length), href: "/admin/products", tone: lowStock.length ? "#FFC53D" : "#2EE6A8" },
-  ];
+  const s = dashboardStats(orders, products, now, windowDays);
+  const recent = orders.filter((o) => o.status !== "unpaid").slice(0, 6);
+  const needsPacking = orders.filter((o) => o.status === "paid");
 
   return (
     <>
-      <h1 className="font-display text-3xl font-extrabold tracking-[-0.025em]">Overview</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-extrabold tracking-[-0.025em]">Dashboard</h1>
+          <p className="mt-1.5 text-[14px] text-duv-muted">
+            Signed in as {admin.email} · last {windowDays} days
+          </p>
+        </div>
+
+        {/* Plain links, not a client component: the page is already dynamic and
+            a router round-trip costs less than shipping JS to swap a number. */}
+        <nav aria-label="Reporting period" className="flex gap-1 rounded-full border border-duv-line bg-white p-1">
+          {WINDOWS.map((x) => {
+            const active = x.days === windowDays;
+            return (
+              <Link
+                key={x.days}
+                href={`/admin?w=${x.days}`}
+                aria-current={active ? "page" : undefined}
+                className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-colors ${
+                  active
+                    ? "bg-duv-plum text-white"
+                    : "text-duv-muted hover:bg-duv-shell hover:text-duv-plum"
+                }`}
+              >
+                {x.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
 
       {!hasDb && (
         <p className="mt-5 rounded-2xl border-2 border-duv-amber bg-tint-jewelry p-5 text-[14px] leading-relaxed text-duv-plum">
@@ -47,54 +87,224 @@ export default async function AdminHome() {
         </p>
       )}
 
-      <ul className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => (
-          <li key={s.label}>
-            <Link href={s.href} className="lift block rounded-2xl border border-duv-line bg-white p-6">
-              <span className="block h-1.5 w-9 rounded-full" style={{ background: s.tone }} aria-hidden="true" />
-              <p className="mt-3.5 font-display text-[28px] font-extrabold tabular-nums leading-none">
-                {s.value}
-              </p>
-              <p className="mt-2 text-[13px] text-duv-muted">{s.label}</p>
+      {/* ---- headline numbers ---- */}
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Revenue"
+          value={money(s.revenue)}
+          trend={s.revenueTrend}
+          note={`vs previous ${windowDays} days`}
+          accent={0}
+        />
+        <StatCard
+          label="Orders"
+          value={String(s.orderCount)}
+          trend={s.orderTrend}
+          note={`${s.unitsSold} items sold`}
+          accent={1}
+        />
+        <StatCard
+          label="Average order"
+          value={money(s.averageOrder)}
+          note={s.orderCount ? `across ${s.orderCount} orders` : "no orders yet"}
+          accent={2}
+        />
+        <StatCard
+          label="Awaiting dispatch"
+          value={String(s.unshipped)}
+          note={
+            s.oldestUnshippedHours === null
+              ? "nothing waiting"
+              : `oldest ${Math.round(s.oldestUnshippedHours)}h`
+          }
+          accent={3}
+        />
+      </div>
+
+      {/* ---- charts ---- */}
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+        <RevenueTrend series={s.series} />
+        <MoneySplit split={s.split} />
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1.4fr]">
+        <OrdersPerDay series={s.series} />
+
+        {/* ---- best sellers ---- */}
+        <section className="overflow-hidden rounded-2xl border border-duv-line bg-white">
+          <div className="flex items-center justify-between border-b border-duv-line px-6 py-4">
+            <h2 className="font-display text-[15px] font-extrabold tracking-tight">Best sellers</h2>
+            <Link
+              href="/admin/products"
+              className="text-[13px] font-bold text-duv-violet underline underline-offset-4"
+            >
+              All products
             </Link>
-          </li>
-        ))}
-      </ul>
+          </div>
+
+          {s.topProducts.length === 0 ? (
+            <p className="px-6 py-10 text-center text-[14px] text-duv-muted">
+              No sales in this period yet.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13.5px]">
+                <thead>
+                  <tr className="border-b border-duv-line text-left text-[11px] uppercase tracking-[0.12em] text-duv-faint-ink">
+                    <th scope="col" className="px-6 py-2.5 font-bold">Product</th>
+                    <th scope="col" className="px-3 py-2.5 text-right font-bold">Units</th>
+                    <th scope="col" className="px-3 py-2.5 text-right font-bold">Revenue</th>
+                    <th scope="col" className="px-6 py-2.5 text-right font-bold">Stock</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-duv-line">
+                  {s.topProducts.map((p) => (
+                    <tr key={p.title}>
+                      <td className="px-6 py-3">
+                        <span className="block font-semibold text-duv-plum">{p.title}</span>
+                        <span className="block font-mono text-[11.5px] text-duv-faint-ink">{p.sku}</span>
+                      </td>
+                      <td className="px-3 py-3 text-right tabular-nums text-duv-muted">{p.units}</td>
+                      <td className="px-3 py-3 text-right font-display font-extrabold tabular-nums">
+                        {money(p.revenue)}
+                      </td>
+                      <td className="px-6 py-3 text-right">
+                        <StockBadge p={p} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* ---- work queues ---- */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <section className="overflow-hidden rounded-2xl border border-duv-line bg-white">
+          <div className="flex items-center justify-between border-b border-duv-line px-6 py-4">
+            <h2 className="font-display text-[15px] font-extrabold tracking-tight">Needs packing</h2>
+            <Link href="/admin/orders" className="text-[13px] font-bold text-duv-violet underline underline-offset-4">
+              All orders
+            </Link>
+          </div>
+          {needsPacking.length === 0 ? (
+            <p className="px-6 py-10 text-center text-[14px] text-duv-muted">
+              Nothing waiting. Every paid order has shipped.
+            </p>
+          ) : (
+            <ul className="divide-y divide-duv-line">
+              {needsPacking.slice(0, 6).map((o) => (
+                <li key={o.id}>
+                  <Link
+                    href={`/admin/orders/${o.id}`}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3.5 hover:bg-duv-shell"
+                  >
+                    <span className="font-mono text-[12.5px] font-bold">{o.ref}</span>
+                    <span className="text-[13.5px]">{o.name ?? o.email}</span>
+                    <span className="text-[12.5px] text-duv-faint-ink">
+                      {Math.round((now - o.created) / 3600)}h ago
+                    </span>
+                    <span className="ml-auto font-display text-[14px] font-extrabold tabular-nums">
+                      {money(o.total)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="overflow-hidden rounded-2xl border border-duv-line bg-white">
+          <div className="flex items-center justify-between border-b border-duv-line px-6 py-4">
+            <h2 className="font-display text-[15px] font-extrabold tracking-tight">Recent orders</h2>
+            <Link href="/admin/sales" className="text-[13px] font-bold text-duv-violet underline underline-offset-4">
+              Sales
+            </Link>
+          </div>
+          {recent.length === 0 ? (
+            <p className="px-6 py-10 text-center text-[14px] text-duv-muted">No orders yet.</p>
+          ) : (
+            <ul className="divide-y divide-duv-line">
+              {recent.map((o) => (
+                <li key={o.id}>
+                  <Link
+                    href={`/admin/orders/${o.id}`}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3.5 hover:bg-duv-shell"
+                  >
+                    <span className="font-mono text-[12.5px] font-bold">{o.ref}</span>
+                    <span className="text-[13.5px]">{o.name ?? o.email}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11.5px] font-bold ${
+                        o.status === "shipped"
+                          ? "bg-duv-mint/25 text-duv-green-ink"
+                          : "bg-duv-pink/12 text-duv-pink-ink"
+                      }`}
+                    >
+                      {o.status === "shipped" ? "Shipped" : "Paid"}
+                    </span>
+                    <span className="ml-auto font-display text-[14px] font-extrabold tabular-nums">
+                      {money(o.total)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {/* ---- stock attention ---- */}
+      {(s.lowStock > 0 || s.outOfStock > 0) && (
+        <section className="mt-4 rounded-2xl border border-duv-line bg-white p-6">
+          <h2 className="font-display text-[15px] font-extrabold tracking-tight">Stock needs attention</h2>
+          <p className="mt-2 text-[13.5px] text-duv-muted">
+            {s.outOfStock > 0 && (
+              <>
+                <strong className="text-duv-plum">{s.outOfStock}</strong> out of stock
+                {s.lowStock > 0 && " · "}
+              </>
+            )}
+            {s.lowStock > 0 && (
+              <>
+                <strong className="text-duv-plum">{s.lowStock}</strong> running low
+              </>
+            )}
+            .{" "}
+            <Link href="/admin/products" className="font-bold text-duv-violet underline underline-offset-4">
+              Review products
+            </Link>
+          </p>
+        </section>
+      )}
 
       <section className="mt-10">
-        <div className="mb-4 flex items-end justify-between">
-          <h2 className="font-display text-xl font-extrabold tracking-tight">Needs packing</h2>
-          <Link href="/admin/orders" className="text-[13.5px] font-bold text-duv-violet underline underline-offset-4">
-            All orders
-          </Link>
-        </div>
-        {unshipped.length === 0 ? (
-          <p className="rounded-2xl border border-duv-line bg-white p-8 text-center text-[14.5px] text-duv-muted">
-            Nothing waiting. Every paid order has shipped.
-          </p>
-        ) : (
-          <ul className="divide-y divide-duv-line overflow-hidden rounded-2xl border border-duv-line bg-white">
-            {unshipped.slice(0, 8).map((o) => (
-              <li key={o.id}>
-                <Link href={`/admin/orders/${o.id}`} className="flex flex-wrap items-center gap-x-5 gap-y-1 px-5 py-4 hover:bg-duv-shell">
-                  <span className="font-mono text-[13px] font-bold">{o.ref}</span>
-                  <span className="text-[14px]">{o.name ?? o.email}</span>
-                  <span className="text-[13px] text-duv-muted">
-                    {o.items.reduce((n, i) => n + i.qty, 0)} item(s)
-                  </span>
-                  <span className="ml-auto font-display text-[15px] font-extrabold tabular-nums">
-                    {money(o.total)}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="mt-12">
-        <TestEmailButton to={adminEmail} />
+        <TestEmailButton to={admin.email} />
       </section>
     </>
+  );
+}
+
+/** Status is never colour alone — the word carries the meaning. */
+function StockBadge({ p }: { p: TopProduct }) {
+  if (p.status === "out-of-stock") {
+    return (
+      <span className="rounded-full bg-duv-coral/15 px-2.5 py-1 text-[11.5px] font-bold text-duv-coral">
+        Out of stock
+      </span>
+    );
+  }
+  if (p.status === "low-stock") {
+    return (
+      <span className="rounded-full bg-duv-amber/25 px-2.5 py-1 text-[11.5px] font-bold text-duv-plum">
+        Low · {p.stock}
+      </span>
+    );
+  }
+  return (
+    <span className="rounded-full bg-duv-mint/25 px-2.5 py-1 text-[11.5px] font-bold text-duv-green-ink">
+      {p.stock === null ? "Not tracked" : `${p.stock} left`}
+    </span>
   );
 }

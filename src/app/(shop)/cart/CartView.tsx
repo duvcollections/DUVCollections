@@ -5,6 +5,7 @@ import { ProductImage } from "@/components/ProductImage";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
+import { trackEvent } from "@/components/Analytics";
 
 import { site, money } from "@/lib/site";
 
@@ -48,6 +49,10 @@ export function CartView() {
         return;
       }
 
+      // Fire before the redirect: once we hand off to Stripe this page is gone,
+      // and an event queued after navigation never sends.
+      trackEvent("Checkout started", { items: count, value: total.toFixed(2) });
+
       // Hand off to Stripe's hosted page. Card details never touch our servers.
       window.location.href = data.url;
     } catch {
@@ -69,7 +74,7 @@ export function CartView() {
         </p>
         <Link
           href="/shop"
-          className="mt-7 inline-block rounded-full bg-duv-pink px-8 py-4 text-[15px] font-bold text-white hover:bg-duv-coral"
+          className="mt-7 inline-block rounded-full bg-duv-pink-deep px-8 py-4 text-[15px] font-bold text-white hover:bg-duv-coral-deep"
         >
           Browse the catalogue
         </Link>
@@ -101,7 +106,7 @@ export function CartView() {
                     {p.title}
                   </Link>
                 </h2>
-                <p className="mt-1 text-[12.5px] text-duv-faint">SKU {p.sku}</p>
+                <p className="mt-1 text-[12.5px] text-duv-faint-ink">SKU {p.sku}</p>
                 <div className="mt-auto flex flex-wrap items-center gap-4 pt-3">
                   <div className="flex items-center gap-1 rounded-full border border-duv-line">
                     <button
@@ -158,12 +163,12 @@ export function CartView() {
           <div className="flex justify-between">
             <dt className="text-duv-muted">Shipping</dt>
             <dd className="font-semibold tabular-nums">
-              {shipping === 0 ? <span className="text-duv-green">Free</span> : money(shipping)}
+              {shipping === 0 ? <span className="text-duv-green-ink">Free</span> : money(shipping)}
             </dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-duv-muted">Sales tax</dt>
-            <dd className="text-[13px] text-duv-faint">Calculated at checkout</dd>
+            <dd className="text-[13px] text-duv-faint-ink">Calculated at checkout</dd>
           </div>
           <div className="flex justify-between border-t border-duv-line pt-3.5 text-[17px]">
             <dt className="font-bold">Total</dt>
@@ -190,7 +195,7 @@ export function CartView() {
           type="button"
           onClick={checkout}
           disabled={busy}
-          className="mt-6 w-full rounded-full bg-duv-pink px-6 py-4 text-[15px] font-bold text-white transition-colors hover:bg-duv-coral disabled:cursor-wait disabled:bg-duv-faint"
+          className="mt-6 w-full rounded-full bg-duv-pink-deep px-6 py-4 text-[15px] font-bold text-white transition-colors hover:bg-duv-coral-deep disabled:cursor-wait disabled:bg-duv-faint"
         >
           {busy ? "Taking you to checkout…" : "Checkout securely"}
         </button>

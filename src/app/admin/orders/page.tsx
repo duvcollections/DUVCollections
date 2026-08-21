@@ -6,8 +6,8 @@ import { isAdmin } from "@/lib/access";
 export const dynamic = "force-dynamic";
 
 const TONE: Record<string, string> = {
-  paid: "bg-duv-pink/12 text-duv-pink",
-  shipped: "bg-duv-mint/25 text-duv-green",
+  paid: "bg-duv-pink/12 text-duv-pink-ink",
+  shipped: "bg-duv-mint/25 text-duv-green-ink",
   refunded: "bg-duv-line text-duv-muted",
   unpaid: "bg-duv-line text-duv-muted",
 };
@@ -63,7 +63,7 @@ export default async function Orders({
                 : "border-duv-line bg-white text-duv-plum hover:border-duv-violet"
             }`}
           >
-            {f.label} <span className="opacity-60">{f.n}</span>
+            {f.label} <span className="text-duv-faint-ink">{f.n}</span>
           </Link>
         ))}
       </div>
@@ -76,7 +76,7 @@ export default async function Orders({
         <div className="mt-6 overflow-x-auto rounded-2xl border border-duv-line bg-white">
           <table className="w-full min-w-[720px] text-[14px]">
             <thead>
-              <tr className="border-b border-duv-line text-left text-[11px] uppercase tracking-[0.12em] text-duv-faint">
+              <tr className="border-b border-duv-line text-left text-[11px] uppercase tracking-[0.12em] text-duv-faint-ink">
                 <th className="px-5 py-3.5 font-bold">Reference</th>
                 <th className="px-5 py-3.5 font-bold">Customer</th>
                 <th className="px-5 py-3.5 font-bold">Placed</th>
