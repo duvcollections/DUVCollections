@@ -1,8 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { CartProvider } from "@/lib/cart";
+import { site } from "@/lib/site";
 
-// Self-hosted so the storefront makes no third-party font request.
+// Self-hosted: the storefront makes no third-party font request, which keeps
+// the page fast and keeps visitor IPs off someone else's server.
 const jakarta = localFont({
   variable: "--font-jakarta",
   display: "swap",
@@ -14,40 +19,35 @@ const jakarta = localFont({
   ],
 });
 
-const SITE = "https://duvcollections.com";
+const gabarito = localFont({
+  variable: "--font-gabarito",
+  display: "swap",
+  src: [
+    { path: "../fonts/Gabarito-700.woff2", weight: "700", style: "normal" },
+    { path: "../fonts/Gabarito-800.woff2", weight: "800", style: "normal" },
+    { path: "../fonts/Gabarito-900.woff2", weight: "900", style: "normal" },
+  ],
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE),
+  metadataBase: new URL(site.url),
   title: {
-    default: "DUV Collections — printing supplies, apparel, gifts & jewelry",
-    template: "%s · DUV Collections",
+    default: `${site.name} — ${site.tagline}`,
+    template: `%s · ${site.name}`,
   },
   description:
-    "DTF films, inks and powders, heat transfer paper, custom printing, men's apparel, " +
-    "gift articles and gold-plated jewelry. Shipped from the USA by DUV Prints and Gifts USA LLC.",
-  applicationName: "DUV Collections",
-  keywords: [
-    "DTF transfer film",
-    "DTF ink",
-    "DTF powder",
-    "heat transfer paper",
-    "sublimation printing",
-    "custom printing",
-    "gold plated jewelry",
-    "gift articles",
-  ],
+    "DTF transfer film, pigment ink and hot-melt powder, heat transfer paper, custom printing, " +
+    "gold-plated jewelry and sunglasses. Shipped from the USA by DUV Prints and Gifts USA LLC.",
+  applicationName: site.name,
   openGraph: {
     type: "website",
-    url: SITE,
-    siteName: "DUV Collections",
-    title: "DUV Collections — printing supplies, apparel, gifts & jewelry",
+    url: site.url,
+    siteName: site.name,
+    title: `${site.name} — ${site.tagline}`,
     description:
-      "DTF films, inks and powders, custom printing, apparel, gifts and gold-plated jewelry, shipped from the USA.",
+      "DTF supplies, custom printing, gold-plated jewelry and gifts. Shipped from the USA.",
   },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/brand/icon/apple-touch-icon-180.png",
-  },
+  icons: { icon: "/favicon.ico", apple: "/brand/icon/apple-touch-icon-180.png" },
   robots: { index: true, follow: true },
 };
 
@@ -57,12 +57,43 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+/**
+ * Organization structured data. This is what lets Google show your business
+ * name, logo and contact details rather than guessing them — and it is one of
+ * the things small stores almost always skip.
+ */
+const orgLd = {
+  "@context": "https://schema.org",
+  "@type": "OnlineStore",
+  name: site.name,
+  legalName: site.legalName,
+  url: site.url,
+  logo: `${site.url}/brand/icon/duv-mark-512.png`,
+  email: site.contact.support,
+  foundingDate: site.founded,
+  areaServed: "US",
+  currenciesAccepted: "USD",
+  paymentAccepted: "Credit Card, Debit Card, Apple Pay, Google Pay",
+  sameAs: [site.external.ebay],
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={jakarta.variable}>
-      <body className="font-sans antialiased">{children}</body>
+    <html lang="en" className={`${jakarta.variable} ${gabarito.variable}`}>
+      <body className="font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
+        />
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
+        <CartProvider>
+          <Header />
+          <main id="main">{children}</main>
+          <Footer />
+        </CartProvider>
+      </body>
     </html>
   );
 }

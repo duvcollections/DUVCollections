@@ -14,8 +14,45 @@ Live at **https://duvcollections.com**
 | Hosting | Cloudflare Workers via `@opennextjs/cloudflare` |
 | Fonts | Plus Jakarta Sans, self-hosted in `src/fonts` — no third-party font requests |
 
-Payments (Stripe), database and login (Supabase), and transactional email (Resend) are
-not wired up yet. They come with the storefront build.
+Payments (Stripe), database and login (Supabase), and transactional email (Resend)
+are not wired up yet — the cart works and persists in the browser, but checkout is
+disabled until Stripe verification completes.
+
+## What's built
+
+- Storefront: home, shop, 3 category pages with sub-filters, 53 product pages, search
+- Cart with quantity editing and a free-shipping threshold nudge, persisted per browser
+- Legal: Terms, Privacy, Payment, Shipping, Returns — written against how this
+  business actually operates, not copied from a template
+- About, Contact, FAQ, Custom Printing
+- SEO: per-product titles, meta descriptions, keywords, canonical URLs,
+  Product/Organization/FAQ structured data, sitemap.xml and robots.txt
+- Accessibility: skip link, visible focus states, one h1 per page, labelled
+  controls, reduced-motion support
+
+## Managing inventory
+
+See `inventory/README.md`. Short version:
+
+```bash
+npm run inventory:export   # catalogue → inventory/products.csv
+# edit stock / price / upc in Excel, save
+npm run inventory:import   # CSV → catalogue
+git add . && git commit -m "Update stock" && git push
+```
+
+## Product images
+
+Products currently show illustrations, not photographs — clearly labelled as such,
+because a generated image dressed as a photo misrepresents what ships. When you
+have real photos, add them at `public/products/<sku>.jpg` and swap the tile in
+`src/components/ProductImage.tsx` for `next/image`.
+
+## Business details
+
+`src/lib/site.ts` is the single source of truth for address, phone, policy values
+and contact routing. Every legal page, the footer and the structured data read from
+it. **Anything marked `TODO_` must be filled in before you take a real order.**
 
 ## How deploys work
 

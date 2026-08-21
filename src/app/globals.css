@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
-/* DUV Collections — brand tokens.
-   Mirrors brand/tokens/tokens.css. Change colours here and the whole site follows. */
+/* ==========================================================================
+   DUV Collections design system
+   Visual language: "overprint" — translucent inks that mix where they overlap,
+   the same idea the logo is built on. Light ground throughout; plum is used
+   for weight, never as the default canvas.
+   ========================================================================== */
 @theme {
   --color-duv-cyan: #00cfff;
   --color-duv-pink: #ff2e93;
@@ -10,36 +14,42 @@
   --color-duv-mint: #2ee6a8;
   --color-duv-coral: #ff6b3d;
 
-  /* Overprint mixes, taken from where the inks overlap in the mark */
+  /* Where two inks overlap in the mark */
   --color-duv-green: #16a34a;
   --color-duv-red: #e11d48;
   --color-duv-blue: #1d4ed8;
 
-  /* Neutrals — violet-biased, never pure grey or black */
+  /* Neutrals — violet-biased. Never pure grey, never black. */
   --color-duv-plum: #2e1065;
+  --color-duv-plum-soft: #4b2a86;
   --color-duv-muted: #6f5a96;
-  --color-duv-line: #f0e4e8;
+  --color-duv-faint: #9b8ab8;
+  --color-duv-line: #efe6ef;
   --color-duv-cream: #fffcf8;
+  --color-duv-shell: #fbf6f2;
 
-  /* Soft category tints for product cards */
   --color-tint-printing: #dff6ff;
-  --color-tint-apparel: #ffe4d6;
   --color-tint-jewelry: #fff1cc;
+  --color-tint-apparel: #ffe4d6;
   --color-tint-gifts: #ffe0ef;
 
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-gabarito), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 
-  --radius-duv: 20px;
+  --shadow-card: 0 1px 2px rgba(46, 16, 101, 0.04), 0 12px 30px -18px rgba(46, 16, 101, 0.3);
+  --shadow-lift: 0 2px 6px rgba(46, 16, 101, 0.06), 0 26px 50px -24px rgba(46, 16, 101, 0.4);
 }
 
 html {
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--color-duv-cream);
   color: var(--color-duv-plum);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 ::selection {
@@ -50,15 +60,136 @@ body {
 :focus-visible {
   outline: 3px solid var(--color-duv-violet);
   outline-offset: 3px;
-  border-radius: 4px;
+  border-radius: 6px;
+}
+
+/* Skip link — keyboard users land here first */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--color-duv-plum);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 0 0 12px 0;
+  font-weight: 700;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* --------------------------------------------------------------- overprint */
+/* Three translucent inks mixing, as ambient page art. Multiply is what makes
+   the overlaps produce new colours instead of just stacking. */
+.overprint {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+.overprint span {
+  position: absolute;
+  border-radius: 9999px;
+  mix-blend-mode: multiply;
+  filter: blur(40px);
+  opacity: 0.55;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .overprint span {
+    animation: drift 26s ease-in-out infinite;
+  }
+  .overprint span:nth-child(2) {
+    animation-duration: 32s;
+    animation-delay: -8s;
+  }
+  .overprint span:nth-child(3) {
+    animation-duration: 38s;
+    animation-delay: -16s;
+  }
+}
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(4%, -5%, 0) scale(1.08); }
+  66% { transform: translate3d(-4%, 4%, 0) scale(0.95); }
+}
+
+/* Gradient text, used sparingly — one phrase per page at most */
+.ink-gradient {
+  background: linear-gradient(102deg, #ff2e93 0%, #ff6b3d 52%, #ffc53d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glass panel that works on a light ground */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-card);
+}
+
+/* Card that lifts on hover, with an ink wash appearing behind it */
+.lift {
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    box-shadow 220ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    border-color 220ms ease;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+/* Gradient hairline used to separate major sections */
+.rule-ink {
+  height: 2px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, #ff2e93, #ffc53d, #00cfff, transparent);
+  opacity: 0.5;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Long-form legal and policy copy */
+.prose-duv { max-width: 68ch; }
+.prose-duv h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
+  margin: 2.5rem 0 0.75rem;
+  scroll-margin-top: 6rem;
+}
+.prose-duv h3 {
+  font-weight: 800;
+  font-size: 1.0625rem;
+  margin: 1.75rem 0 0.5rem;
+}
+.prose-duv p, .prose-duv li { color: var(--color-duv-muted); line-height: 1.75; }
+.prose-duv p { margin: 0.875rem 0; }
+.prose-duv ul, .prose-duv ol { margin: 0.875rem 0; padding-left: 1.35rem; }
+.prose-duv li { margin: 0.4rem 0; }
+.prose-duv ul { list-style: disc; }
+.prose-duv ol { list-style: decimal; }
+.prose-duv strong { color: var(--color-duv-plum); font-weight: 700; }
+.prose-duv a { color: var(--color-duv-violet); text-decoration: underline; text-underline-offset: 3px; }
+.prose-duv a:hover { color: var(--color-duv-pink); }
+.prose-duv table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.9375rem; }
+.prose-duv th, .prose-duv td {
+  text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--color-duv-line);
+}
+.prose-duv th { font-weight: 700; color: var(--color-duv-plum); }
+.prose-duv td { color: var(--color-duv-muted); }

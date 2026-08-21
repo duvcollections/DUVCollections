@@ -10,7 +10,9 @@
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-build": "opennextjs-cloudflare build",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "inventory:export": "node scripts/export-inventory.mjs",
+    "inventory:import": "node scripts/import-inventory.mjs"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.2",
