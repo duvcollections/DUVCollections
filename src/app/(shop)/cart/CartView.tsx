@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { ProductImage } from "@/components/ProductImage";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
 
 import { site, money } from "@/lib/site";
 
-export function CartView({ cancelled = false }: { cancelled?: boolean }) {
+export function CartView() {
+  // Read here rather than as a server prop: taking it from `searchParams` on
+  // the page would make the whole cart route render server-side on every visit.
+  const cancelled = useSearchParams().get("cancelled") === "1";
+
   const { catalog, lines, ready, setQty, remove, subtotal, shipping, total, freeShippingGap, count } =
     useCart();
   const [busy, setBusy] = useState(false);

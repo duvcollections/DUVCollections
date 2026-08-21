@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { ProductGrid } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { categories, getCategory, byCategory, subcategoriesOf } from "@/lib/catalog";
+import { CategoryFilter } from "./CategoryFilter";
+import { Suspense } from "react";
 
 type Params = { category: string };
 
@@ -23,25 +24,16 @@ export async function generateMetadata({
   return { title: c.name, description: c.blurb };
 }
 
-export default async function CategoryPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<Params>;
-  searchParams: Promise<{ sub?: string; lot?: string }>;
-}) {
+const CHIP_BASE = "rounded-full border px-4 py-2 text-[13.5px] font-semibold transition-colors";
+
+export default async function CategoryPage({ params }: { params: Promise<Params> }) {
   const { category } = await params;
-  const { sub, lot } = await searchParams;
   const c = getCategory(category);
   if (!c) notFound();
 
   const subs = await subcategoriesOf(category);
   const all = await byCategory(category);
-  let items = sub ? all.filter((p) => p.subcategory === sub) : all;
-  if (lot === "1") items = items.filter((p) => p.wholesale);
-  const lotCount = (sub ? all.filter((p) => p.subcategory === sub) : all).filter(
-    (p) => p.wholesale,
-  ).length;
+  const lotCount = all.filter((p) => p.wholesale).length;
 
   return (
     <>
@@ -51,59 +43,69 @@ export default async function CategoryPage({
           trail={[{ href: "/", label: "Home" }, { href: "/shop", label: "Shop" }, { label: c.name }]}
         />
 
+        {/* Renders nothing — it reads the query string and hides what doesn't
+            match, so this page can stay prerendered. */}
+        <Suspense fallback={null}>
+          <CategoryFilter allCount={all.length} />
+        </Suspense>
+
         {subs.length > 1 && (
           <div className="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filter by type">
-            <Link
+            <a
               href={`/shop/${category}`}
-              aria-current={!sub ? "true" : undefined}
-              className={`rounded-full border px-4 py-2 text-[13.5px] font-semibold transition-colors ${
-                !sub
-                  ? "border-duv-plum bg-duv-plum text-white"
-                  : "border-duv-line bg-white text-duv-plum hover:border-duv-violet"
-              }`}
+              data-chip-sub=""
+              data-base={CHIP_BASE}
+              aria-current="true"
+              className={`${CHIP_BASE} border-duv-plum bg-duv-plum text-white`}
             >
               All <span className="ml-1 opacity-60">{all.length}</span>
-            </Link>
+            </a>
             {subs.map((s) => (
-              <Link
+              <a
                 key={s.id}
                 href={`/shop/${category}?sub=${s.id}`}
-                aria-current={sub === s.id ? "true" : undefined}
-                className={`rounded-full border px-4 py-2 text-[13.5px] font-semibold transition-colors ${
-                  sub === s.id
-                    ? "border-duv-plum bg-duv-plum text-white"
-                    : "border-duv-line bg-white text-duv-plum hover:border-duv-violet"
-                }`}
+                data-chip-sub={s.id}
+                data-base={CHIP_BASE}
+                className={`${CHIP_BASE} border-duv-line bg-white text-duv-plum hover:border-duv-violet`}
               >
                 {s.label} <span className="ml-1 opacity-60">{s.count}</span>
-              </Link>
+              </a>
             ))}
           </div>
         )}
 
         {lotCount > 0 && (
           <div className="mb-6">
-            <Link
-              href={`/shop/${category}?${new URLSearchParams({
-                ...(sub ? { sub } : {}),
-                ...(lot === "1" ? {} : { lot: "1" }),
-              })}`}
-              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[13.5px] font-semibold transition-colors ${
-                lot === "1"
-                  ? "border-duv-violet bg-duv-violet text-white"
-                  : "border-duv-line bg-white text-duv-plum hover:border-duv-violet"
-              }`}
+            <a
+              href={`/shop/${category}?lot=1`}
+              data-chip-lot=""
+              data-base={`${CHIP_BASE} inline-flex items-center gap-2`}
+              className={`${CHIP_BASE} inline-flex items-center gap-2 border-duv-line bg-white text-duv-plum hover:border-duv-violet`}
             >
-              {lot === "1" ? "Showing wholesale lots only" : "Wholesale lots only"}
+              <span data-lot-label="">Wholesale lots only</span>
               <span className="opacity-60">{lotCount}</span>
-            </Link>
+            </a>
           </div>
         )}
 
-        <p className="mb-5 text-[13.5px] text-duv-muted">
-          Showing {items.length} of {all.length} products
+        <p id="cat-count" className="mb-5 text-[13.5px] text-duv-muted">
+          Showing {all.length} of {all.length} products
         </p>
-        <ProductGrid items={items} />
+
+        <div id="cat-grid">
+          <ProductGrid items={all} />
+        </div>
+
+        <p
+          id="cat-empty"
+          hidden
+          className="mt-4 rounded-2xl border border-duv-line bg-white p-10 text-center text-duv-muted"
+        >
+          Nothing matches that filter.{" "}
+          <a href={`/shop/${category}`} className="font-bold text-duv-violet underline underline-offset-4">
+            Show everything
+          </a>
+        </p>
       </div>
     </>
   );

@@ -72,7 +72,14 @@ export function ProductGrid({ items }: { items: Product[] }) {
   return (
     <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
       {items.map((p) => (
-        <li key={p.sku} className="contents">
+        <li
+          key={p.sku}
+          className="contents"
+          // Read by the category filter, which hides non-matching cards in the
+          // browser rather than asking the server to render a filtered list.
+          data-sub={p.subcategory}
+          data-lot={p.wholesale ? "1" : "0"}
+        >
           <ProductCard p={p} />
         </li>
       ))}

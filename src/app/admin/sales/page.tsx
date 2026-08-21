@@ -12,7 +12,7 @@ export default async function Sales() {
   if (!(await isAdmin())) return null;
   let orders;
   try {
-    orders = await listOrders(100);
+    orders = await listOrders(60);
   } catch (err) {
     return (
       <p className="rounded-2xl border-2 border-duv-red bg-duv-red/5 p-6 text-[14px] text-duv-red">

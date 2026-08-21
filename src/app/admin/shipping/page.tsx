@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function Shipping() {
   if (!(await adminOrNull())) return null;
 
-  const orders = await listOrders(100).catch(() => []);
+  const orders = await listOrders(60).catch(() => []);
   const waiting = orders.filter((o) => o.status === "paid");
 
   return (
