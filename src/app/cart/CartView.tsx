@@ -22,12 +22,27 @@ export function CartView({ cancelled = false }: { cancelled?: boolean }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lines: lines.map((l) => ({ sku: l.sku, qty: l.qty })) }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        setError(data.error ?? "Something went wrong. Please try again.");
+
+      // Parse defensively. If the endpoint is missing or misconfigured the body
+      // is an HTML error page, not JSON — and reporting that as "check your
+      // connection" sends everyone hunting for the wrong problem.
+      let data: { url?: string; error?: string } = {};
+      try {
+        data = (await res.json()) as typeof data;
+      } catch {
+        setError(
+          `Checkout is misconfigured (server said ${res.status}). Please email us and we'll take your order directly.`,
+        );
         setBusy(false);
         return;
       }
+
+      if (!res.ok || !data.url) {
+        setError(data.error ?? `Something went wrong (${res.status}). Please try again.`);
+        setBusy(false);
+        return;
+      }
+
       // Hand off to Stripe's hosted page. Card details never touch our servers.
       window.location.href = data.url;
     } catch {

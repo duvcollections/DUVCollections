@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripeClient, cryptoProvider, secret } from "@/lib/stripe";
 
-export const runtime = "edge";
 
 /**
  * Stripe webhook.

@@ -3,7 +3,6 @@ import { stripeClient, secret } from "@/lib/stripe";
 import { priceCart } from "@/lib/orders";
 import { site, money } from "@/lib/site";
 
-export const runtime = "edge";
 
 /**
  * Creates a Stripe Checkout Session and returns its URL.
