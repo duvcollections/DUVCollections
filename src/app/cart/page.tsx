@@ -5,7 +5,12 @@ import { CartView } from "./CartView";
 
 export const metadata: Metadata = { title: "Your cart", robots: { index: false } };
 
-export default function CartPage() {
+export default async function CartPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cancelled?: string }>;
+}) {
+  const { cancelled } = await searchParams;
   return (
     <>
       <PageHeader
@@ -15,7 +20,7 @@ export default function CartPage() {
       />
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <Breadcrumbs trail={[{ href: "/", label: "Home" }, { label: "Cart" }]} />
-        <CartView />
+        <CartView cancelled={cancelled === "1"} />
       </div>
     </>
   );

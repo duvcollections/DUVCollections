@@ -2,13 +2,39 @@
 
 import Link from "next/link";
 import { ProductImage } from "@/components/ProductImage";
+import { useState } from "react";
 import { useCart } from "@/lib/cart";
 import { products } from "@/lib/catalog";
 import { site, money } from "@/lib/site";
 
-export function CartView() {
+export function CartView({ cancelled = false }: { cancelled?: boolean }) {
   const { lines, ready, setQty, remove, subtotal, shipping, total, freeShippingGap, count } =
     useCart();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function checkout() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lines: lines.map((l) => ({ sku: l.sku, qty: l.qty })) }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        setError(data.error ?? "Something went wrong. Please try again.");
+        setBusy(false);
+        return;
+      }
+      // Hand off to Stripe's hosted page. Card details never touch our servers.
+      window.location.href = data.url;
+    } catch {
+      setError("We couldn't reach the payment service. Check your connection and try again.");
+      setBusy(false);
+    }
+  }
 
   if (!ready) {
     return <p className="py-16 text-center text-duv-muted">Loading your cart…</p>;
@@ -125,19 +151,43 @@ export function CartView() {
           </div>
         </dl>
 
+        {cancelled && !error && (
+          <p className="mt-5 rounded-xl bg-tint-jewelry px-4 py-3 text-[13px] text-duv-plum">
+            Checkout was cancelled — nothing was charged and your cart is still here.
+          </p>
+        )}
+
+        {error && (
+          <p
+            role="alert"
+            className="mt-5 rounded-xl bg-duv-red/10 px-4 py-3 text-[13px] font-semibold text-duv-red"
+          >
+            {error}
+          </p>
+        )}
+
         <button
           type="button"
-          disabled
-          className="mt-6 w-full cursor-not-allowed rounded-full bg-duv-line px-6 py-4 text-[15px] font-bold text-duv-muted"
+          onClick={checkout}
+          disabled={busy}
+          className="mt-6 w-full rounded-full bg-duv-pink px-6 py-4 text-[15px] font-bold text-white transition-colors hover:bg-duv-coral disabled:cursor-wait disabled:bg-duv-faint"
         >
-          Checkout — coming soon
+          {busy ? "Taking you to checkout…" : "Checkout securely"}
         </button>
+
         <p className="mt-3 text-center text-[12.5px] leading-relaxed text-duv-muted">
-          Card payments go live once Stripe verification completes. To order today, email{" "}
-          <a className="font-semibold text-duv-violet underline underline-offset-2" href={`mailto:${site.contact.sales}`}>
-            {site.contact.sales}
-          </a>{" "}
-          with your cart and we&rsquo;ll invoice you directly.
+          Payment is handled by Stripe. Your card details go straight to them and never
+          touch our servers. Sales tax is calculated from your delivery address on the
+          next screen.
+        </p>
+        <p className="mt-2 text-center text-[12.5px] text-duv-muted">
+          Prefer an invoice?{" "}
+          <a
+            className="font-semibold text-duv-violet underline underline-offset-2"
+            href={`mailto:${site.contact.sales}`}
+          >
+            Email {site.contact.sales}
+          </a>
         </p>
       </aside>
     </div>

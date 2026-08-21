@@ -14,9 +14,13 @@ Live at **https://duvcollections.com**
 | Hosting | Cloudflare Workers via `@opennextjs/cloudflare` |
 | Fonts | Plus Jakarta Sans, self-hosted in `src/fonts` — no third-party font requests |
 
-Payments (Stripe), database and login (Supabase), and transactional email (Resend)
-are not wired up yet — the cart works and persists in the browser, but checkout is
-disabled until Stripe verification completes.
+Payments run through **Stripe Checkout** — see `docs/stripe-setup.md` to switch
+them on. Database (Supabase) and branded transactional email (Resend) are not wired
+up yet; orders live in the Stripe Dashboard and Stripe sends the receipts.
+
+**Secrets never live in this repo.** `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`
+go in the Cloudflare dashboard under Settings → Variables and Secrets, and in
+`.dev.vars` locally (git-ignored — see `.dev.vars.example`).
 
 ## What's built
 
