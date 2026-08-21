@@ -5,6 +5,13 @@ import { isAdmin } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
+const LABEL: Record<string, string> = {
+  paid: "Awaiting dispatch",
+  shipped: "Shipped",
+  refunded: "Refunded",
+  unpaid: "Unpaid",
+};
+
 const TONE: Record<string, string> = {
   paid: "bg-duv-pink/12 text-duv-pink-ink",
   shipped: "bg-duv-mint/25 text-duv-green-ink",
@@ -37,6 +44,7 @@ export default async function Orders({
     all: orders.length,
     paid: orders.filter((o) => o.status === "paid").length,
     shipped: orders.filter((o) => o.status === "shipped").length,
+    refunded: orders.filter((o) => o.status === "refunded").length,
   };
 
   return (
@@ -52,6 +60,7 @@ export default async function Orders({
           { id: undefined, label: "All", n: counts.all },
           { id: "paid", label: "Awaiting dispatch", n: counts.paid },
           { id: "shipped", label: "Shipped", n: counts.shipped },
+          { id: "refunded", label: "Refunded", n: counts.refunded },
         ].map((f) => (
           <Link
             key={f.label}
@@ -103,7 +112,7 @@ export default async function Orders({
                   </td>
                   <td className="px-5 py-4">
                     <span className={`rounded-full px-2.5 py-1 text-[12px] font-bold ${TONE[o.status]}`}>
-                      {o.status === "paid" ? "Awaiting dispatch" : o.status}
+                      {LABEL[o.status] ?? o.status}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right font-display font-extrabold tabular-nums">

@@ -40,11 +40,24 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         </h1>
         <span
           className={`rounded-full px-3 py-1 text-[12.5px] font-bold ${
-            o.status === "shipped" ? "bg-duv-mint/25 text-duv-green-ink" : "bg-duv-pink/12 text-duv-pink-ink"
+            o.status === "refunded"
+              ? "bg-duv-line text-duv-muted"
+              : o.status === "shipped"
+                ? "bg-duv-mint/25 text-duv-green-ink"
+                : "bg-duv-pink/12 text-duv-pink-ink"
           }`}
         >
-          {o.status === "shipped" ? "Shipped" : "Awaiting dispatch"}
+          {o.status === "refunded"
+            ? "Refunded"
+            : o.status === "shipped"
+              ? "Shipped"
+              : "Awaiting dispatch"}
         </span>
+        {o.refundedAmount > 0 && (
+          <span className="text-[13px] font-semibold text-duv-muted">
+            {money(o.refundedAmount)} refunded
+          </span>
+        )}
         <span className="text-[13.5px] text-duv-muted">
           {new Date(o.created * 1000).toLocaleString("en-US", {
             dateStyle: "medium", timeStyle: "short",

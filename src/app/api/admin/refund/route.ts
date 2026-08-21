@@ -96,6 +96,25 @@ export async function POST(req: NextRequest) {
   const full = cents === remaining && alreadyRefunded === 0;
   console.log(`[refund] ${actor} refunded $${(cents / 100).toFixed(2)} on ${order.ref} (${refundId})`);
 
+  // Stamp the session so the order stops looking like it needs packing.
+  //
+  // Status is derived from the session, and a refunded session still reports
+  // payment_status "paid" — so without this the order sits in the queue and
+  // keeps counting toward revenue. Metadata updates merge, so this touches only
+  // these two keys. Best-effort: the money has already moved, and a failure
+  // here must not report the refund as failed.
+  const refundedTotal = alreadyRefunded + cents;
+  try {
+    await stripe.checkout.sessions.update(order.id, {
+      metadata: {
+        refunded_amount: String(refundedTotal),
+        refunded: refundedTotal >= totalCents ? "full" : "partial",
+      },
+    });
+  } catch (err) {
+    console.error(`[refund] could not stamp ${order.ref}: ${(err as Error).message}`);
+  }
+
   // Stock and email are both best-effort. The money has moved; neither of
   // these failing should make it look like it hasn't.
   let restocked: string | null = null;

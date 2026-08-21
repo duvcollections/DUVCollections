@@ -50,6 +50,7 @@ const order = (over: Partial<Order> & { created: number }): Order => ({
   shippedAt: null,
   paymentIntentId: "pi_1",
   skus: [],
+  refundedAmount: 0,
   ...over,
 });
 
@@ -200,6 +201,32 @@ console.log("\nseries reconciles with the headline (regression)");
     check(`${windowDays}d: series revenue equals headline`, seriesRevenue, Math.round(s.revenue * 100) / 100);
     check(`${windowDays}d: series orders equal headline`, seriesOrders, s.orderCount);
   }
+}
+
+
+console.log("\nrefunds leave the queue and the revenue");
+{
+  // The bug this covers: a refunded Checkout Session still reports
+  // payment_status "paid", so a refunded order sat in "needs packing" forever
+  // and kept counting as income.
+  const orders = [
+    order({ created: NOW - DAY, total: 100 }),
+    order({ created: NOW - DAY, total: 250, status: "refunded", refundedAmount: 250 }),
+    order({ created: NOW - DAY, total: 80, refundedAmount: 30 }), // partial
+  ];
+  const s = dashboardStats(orders, [], NOW, 30);
+  check("full refund removed from revenue", s.revenue, 150);      // 100 + (80-30)
+  check("refunded order not awaiting dispatch", s.unshipped, 2);  // the other two
+  check("series still reconciles with headline",
+    Math.round(s.series.reduce((n, x) => n + x.revenue, 0) * 100) / 100,
+    Math.round(s.revenue * 100) / 100);
+}
+
+console.log("\nover-refund cannot go negative");
+{
+  const orders = [order({ created: NOW - DAY, total: 50, refundedAmount: 80 })];
+  const s = dashboardStats(orders, [], NOW, 30);
+  check("revenue floored at zero", s.revenue, 0);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);

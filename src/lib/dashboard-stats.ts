@@ -95,6 +95,8 @@ export function dashboardStats(
   nowSeconds: number,
   windowDays = 30,
 ): DashboardStats {
+  // Refunded orders are excluded from revenue and from the packing queue. An
+  // order whose money went back is not income, and it does not need a parcel.
   const paid = orders.filter((o) => o.status !== "unpaid");
 
   // Align the window to the START OF A LOCAL DAY, not to "N × 24h ago".
@@ -116,8 +118,11 @@ export function dashboardStats(
   const current = paid.filter((o) => o.created >= windowStart);
   const prior = paid.filter((o) => o.created >= priorStart && o.created < windowStart);
 
-  const revenue = current.reduce((n, o) => n + o.total, 0);
-  const priorRevenue = prior.reduce((n, o) => n + o.total, 0);
+  // Net of refunds: a partially refunded order still counts, minus what went
+  // back. Floored at zero so an over-refund can never show negative revenue.
+  const net = (o: Order) => Math.max(0, o.total - (o.refundedAmount ?? 0));
+  const revenue = current.reduce((n, o) => n + net(o), 0);
+  const priorRevenue = prior.reduce((n, o) => n + net(o), 0);
   const unitsSold = current.reduce(
     (n, o) => n + o.items.reduce((m, i) => m + i.qty, 0),
     0,
@@ -136,7 +141,7 @@ export function dashboardStats(
   for (const o of current) {
     const b = buckets.get(dayKey(o.created));
     if (!b) continue;
-    b.revenue += o.total;
+    b.revenue += net(o);
     b.orders += 1;
   }
 
@@ -171,7 +176,8 @@ export function dashboardStats(
   // ---- where the money sits ----------------------------------------------
   // Tax is collected on behalf of the state and shipping is largely passed to
   // the carrier — showing them separately stops "revenue" being read as profit.
-  const goods = current.reduce((n, o) => n + o.subtotal, 0);
+  const refundedTotal = current.reduce((n, o) => n + (o.refundedAmount ?? 0), 0);
+  const goods = Math.max(0, current.reduce((n, o) => n + o.subtotal, 0) - refundedTotal);
   const shipping = current.reduce((n, o) => n + o.shipping, 0);
   const tax = current.reduce((n, o) => n + o.tax, 0);
   const splitTotal = goods + shipping + tax;
@@ -182,6 +188,7 @@ export function dashboardStats(
   ];
 
   // ---- operational -------------------------------------------------------
+  // "paid" excludes refunded and shipped by construction — see toOrder.
   const unshippedOrders = paid.filter((o) => o.status === "paid");
   const oldest = unshippedOrders.reduce<number | null>((acc, o) => {
     const hours = (nowSeconds - o.created) / 3600;

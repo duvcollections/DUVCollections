@@ -33,6 +33,8 @@ export type Order = {
   paymentIntentId: string | null;
   /** `SKU x qty` pairs recorded at checkout, used to work out parcel weight. */
   skus: { sku: string; qty: number }[];
+  /** Dollars refunded so far. Zero for untouched orders. */
+  refundedAmount: number;
 };
 
 const cents = (n: number | null | undefined) => (n ?? 0) / 100;
@@ -40,12 +42,28 @@ const cents = (n: number | null | undefined) => (n ?? 0) / 100;
 function toOrder(s: Stripe.Checkout.Session): Order {
   const m = s.metadata ?? {};
   const shipped = Boolean(m.tracking);
+
+  // A refunded Checkout Session still reports payment_status "paid" — because
+  // it WAS paid; the refund is a separate object hanging off the PaymentIntent.
+  // Without this check a refunded order sits in the packing queue forever and
+  // keeps counting toward revenue. The stamp is written by the refund route and
+  // by the charge.refunded webhook, so refunds issued straight from the Stripe
+  // dashboard are caught too.
+  const refundedAmount = Number(m.refunded_amount ?? 0);
+  const fullyRefunded = m.refunded === "full" || (refundedAmount > 0 && refundedAmount >= (s.amount_total ?? 0));
+
   return {
     id: s.id,
     ref: s.id.slice(-12).toUpperCase(),
     created: s.created,
     status:
-      s.payment_status !== "paid" ? "unpaid" : shipped ? "shipped" : "paid",
+      s.payment_status !== "paid"
+        ? "unpaid"
+        : fullyRefunded
+          ? "refunded"
+          : shipped
+            ? "shipped"
+            : "paid",
     email: s.customer_details?.email ?? null,
     name: s.customer_details?.name ?? null,
     phone: s.customer_details?.phone ?? null,
@@ -69,6 +87,7 @@ function toOrder(s: Stripe.Checkout.Session): Order {
     paymentIntentId:
       typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null,
     skus: parseSkus(m.skus),
+    refundedAmount: refundedAmount / 100,
   };
 }
 

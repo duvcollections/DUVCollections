@@ -188,9 +188,48 @@ export async function POST(req: NextRequest) {
       console.log(`[order] async payment FAILED ${event.data.object.id}`);
       break;
 
-    case "charge.refunded":
-      console.log(`[order] refunded ${event.data.object.id}`);
+    case "charge.refunded": {
+      // Catches refunds issued straight from the Stripe dashboard, which never
+      // touch our admin route. Without this the order keeps showing as needing
+      // dispatch and keeps counting toward revenue — the status is derived from
+      // the Checkout Session, and a refunded session still says "paid".
+      const charge = event.data.object;
+      console.log(
+        `[order] refunded charge ${charge.id} · ${(charge.amount_refunded / 100).toFixed(2)} of ` +
+          `${(charge.amount / 100).toFixed(2)}`,
+      );
+
+      try {
+        const pi = typeof charge.payment_intent === "string"
+          ? charge.payment_intent
+          : charge.payment_intent?.id;
+        if (!pi) {
+          console.log("[order] refunded charge has no payment intent — cannot match a session");
+          break;
+        }
+
+        // Find the Checkout Session behind this charge. There is no direct
+        // lookup from charge to session, so we go via the PaymentIntent.
+        const sessions = await stripe.checkout.sessions.list({ payment_intent: pi, limit: 1 });
+        const session = sessions.data[0];
+        if (!session) {
+          console.log(`[order] no checkout session for ${pi} — nothing to stamp`);
+          break;
+        }
+
+        await stripe.checkout.sessions.update(session.id, {
+          metadata: {
+            refunded_amount: String(charge.amount_refunded),
+            refunded: charge.amount_refunded >= charge.amount ? "full" : "partial",
+          },
+        });
+        console.log(`[order] stamped ${session.id.slice(-12).toUpperCase()} as refunded`);
+      } catch (err) {
+        // Never rethrow: a non-2xx makes Stripe retry this event for days.
+        console.error("[order] could not stamp refund:", err);
+      }
       break;
+    }
 
     case "charge.dispute.created":
       console.log(`[order] DISPUTE opened ${event.data.object.id} — respond in Stripe`);
