@@ -14,9 +14,10 @@ Live at **https://duvcollections.com**
 | Hosting | Cloudflare Workers via `@opennextjs/cloudflare` |
 | Fonts | Plus Jakarta Sans, self-hosted in `src/fonts` — no third-party font requests |
 
-Payments run through **Stripe Checkout** — see `docs/stripe-setup.md` to switch
-them on. Database (Supabase) and branded transactional email (Resend) are not wired
-up yet; orders live in the Stripe Dashboard and Stripe sends the receipts.
+Payments run through **Stripe Checkout** — see `docs/stripe-setup.md`.
+The admin at `/admin` handles orders, products, shipping and sales — see
+**`docs/admin-setup.md`** for the three things that have to be switched on
+(Cloudflare Access, D1, Resend).
 
 **Secrets never live in this repo.** `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`
 go in the Cloudflare dashboard under Settings → Variables and Secrets, and in
@@ -33,6 +34,10 @@ go in the Cloudflare dashboard under Settings → Variables and Secrets, and in
   Product/Organization/FAQ structured data, sitemap.xml and robots.txt
 - Accessibility: skip link, visible focus states, one h1 per page, labelled
   controls, reduced-motion support
+- Admin at `/admin`, behind Cloudflare Access: order list and detail, mark-as-shipped
+  with tracking email, product create/edit/archive with an audit trail, sales summary
+  that separates revenue from tax held for Texas
+- Customer order lookup at `/orders` — order reference **and** email, both required
 
 ## Managing inventory
 

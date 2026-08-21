@@ -81,6 +81,12 @@ export default async function Success({
             Keep shopping
           </Link>
           <Link
+            href="/orders"
+            className="rounded-full border-2 border-duv-plum px-7 py-[12px] text-[15px] font-bold text-duv-plum hover:border-duv-violet hover:text-duv-violet"
+          >
+            Track this order
+          </Link>
+          <Link
             href="/policies/returns"
             className="rounded-full border-2 border-duv-plum px-7 py-[12px] text-[15px] font-bold text-duv-plum hover:border-duv-violet hover:text-duv-violet"
           >

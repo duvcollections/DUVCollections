@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/lib/cart";
 import { site } from "@/lib/site";
+import { getProducts } from "@/lib/catalog";
 
 // Self-hosted: the storefront makes no third-party font request, which keeps
 // the page fast and keeps visitor IPs off someone else's server.
@@ -77,7 +78,17 @@ const orgLd = {
   sameAs: [site.external.ebay],
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Only the fields the cart needs — the full catalogue never ships to the browser.
+  const catalog = (await getProducts()).map((p) => ({
+    sku: p.sku,
+    slug: p.slug,
+    title: p.title,
+    price: p.price,
+    category: p.category,
+    art: p.art,
+  }));
+
   return (
     <html lang="en" className={`${jakarta.variable} ${gabarito.variable}`}>
       <body className="font-sans antialiased">
@@ -88,7 +99,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        <CartProvider>
+        <CartProvider catalog={catalog}>
           <Header />
           <main id="main">{children}</main>
           <Footer />

@@ -1,12 +1,23 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { products } from "@/lib/catalog";
+
 import { site } from "@/lib/site";
 
 export type CartLine = { sku: string; qty: number };
 
+/** The slice of a product the cart needs. Kept small — this ships to the browser. */
+export type CartProduct = {
+  sku: string;
+  slug: string;
+  title: string;
+  price: number;
+  category: string;
+  art: string;
+};
+
 type CartState = {
+  catalog: CartProduct[];
   lines: CartLine[];
   ready: boolean;
   add: (sku: string, qty?: number) => void;
@@ -23,22 +34,33 @@ type CartState = {
 const KEY = "duv.cart.v1";
 const Ctx = createContext<CartState | null>(null);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({
+  catalog,
+  children,
+}: {
+  /** Passed from the server layout so prices are current, not build-time. */
+  catalog: CartProduct[];
+  children: React.ReactNode;
+}) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [ready, setReady] = useState(false);
 
-  // Restore on mount. Wrapped because storage throws in some privacy modes.
+  // Restore on mount. localStorage cannot be read during render without breaking
+  // hydration — the server has no cart — so this effect is the correct place for
+  // it, and the setState below is deliberate. Wrapped in try/catch because
+  // storage throws outright in some privacy modes.
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- see note above
           setLines(
             parsed
               .filter((l) => l && typeof l.sku === "string" && Number.isFinite(l.qty))
               .map((l) => ({ sku: l.sku, qty: Math.max(1, Math.min(99, Math.floor(l.qty))) }))
-              .filter((l) => products.some((p) => p.sku === l.sku)),
+              .filter((l) => catalog.some((p) => p.sku === l.sku)),
           );
         }
       }
@@ -46,6 +68,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       /* storage unavailable — cart simply starts empty */
     }
     setReady(true);
+    // Mount only: re-running when `catalog` changes would clobber the live cart.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -86,12 +110,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<CartState>(() => {
     const count = lines.reduce((n, l) => n + l.qty, 0);
     const subtotal = lines.reduce((n, l) => {
-      const p = products.find((x) => x.sku === l.sku);
+      const p = catalog.find((x) => x.sku === l.sku);
       return n + (p ? p.price * l.qty : 0);
     }, 0);
     const qualifies = subtotal >= site.policy.freeShippingThreshold;
     const shipping = count === 0 || qualifies ? 0 : site.policy.shippingFlatRate;
     return {
+      catalog,
       lines,
       ready,
       add,
@@ -104,7 +129,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       total: subtotal + shipping,
       freeShippingGap: Math.max(0, site.policy.freeShippingThreshold - subtotal),
     };
-  }, [lines, ready, add, setQty, remove, clear]);
+  }, [catalog, lines, ready, add, setQty, remove, clear]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

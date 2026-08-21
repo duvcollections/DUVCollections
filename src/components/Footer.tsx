@@ -16,6 +16,7 @@ const COMPANY = [
   { href: "/custom-printing", label: "Custom Printing" },
   { href: "/contact", label: "Contact Us" },
   { href: "/faq", label: "FAQ" },
+  { href: "/orders", label: "Track your order" },
 ];
 
 export function Footer() {

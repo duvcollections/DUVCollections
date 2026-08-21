@@ -36,6 +36,7 @@ export type Product = {
   /** A multi-piece lot priced for resale, rather than a single retail piece. */
   wholesale: boolean;
   condition: "new" | "used" | "refurbished";
+  archived?: boolean;
 };
 
 export type Availability = "in-stock" | "low-stock" | "out-of-stock";
@@ -49,7 +50,123 @@ export function availability(p: Product): Availability {
 
 export type CategoryId = "printing-supplies" | "jewelry" | "eyewear";
 
-export const products = raw as unknown as Product[];
+import { getDb } from "@/lib/db";
+
+/**
+ * Catalogue access.
+ *
+ * Reads from D1 when a database is bound, and falls back to the seed JSON
+ * otherwise — so the shop still renders under `next dev`, and a database
+ * hiccup degrades to the last shipped catalogue instead of an empty store.
+ */
+
+const seed = raw as unknown as Product[];
+
+type Row = Record<string, unknown>;
+
+function fromRow(r: Row): Product {
+  const j = <T,>(v: unknown, fallback: T): T => {
+    try { return typeof v === "string" ? (JSON.parse(v) as T) : fallback; }
+    catch { return fallback; }
+  };
+  return {
+    sku: String(r.sku),
+    slug: String(r.slug),
+    title: String(r.title),
+    price: Number(r.price),
+    category: String(r.category) as CategoryId,
+    subcategory: String(r.subcategory),
+    description: String(r.description ?? ""),
+    highlights: j<string[]>(r.highlights, []),
+    goodFor: String(r.good_for ?? ""),
+    specs: j<Record<string, string>>(r.specs, {}),
+    art: String(r.art ?? "generic"),
+    seoTitle: String(r.seo_title ?? r.title),
+    metaDescription: String(r.meta_description ?? ""),
+    keywords: j<string[]>(r.keywords, []),
+    stock: r.stock === null || r.stock === undefined ? null : Number(r.stock),
+    lowStockAt: Number(r.low_stock_at ?? 5),
+    upc: r.upc ? String(r.upc) : null,
+    mpn: String(r.mpn ?? r.sku),
+    shipWeightOz: Number(r.ship_weight_oz ?? 4),
+    wholesale: Boolean(Number(r.wholesale ?? 0)),
+    condition: (String(r.condition ?? "new") as Product["condition"]),
+    archived: Boolean(Number(r.archived ?? 0)),
+  };
+}
+
+/** Every product, archived ones included. Admin use. */
+export async function allProducts(): Promise<Product[]> {
+  const db = await getDb();
+  if (!db) return seed.map((p) => ({ ...p, archived: p.archived ?? false }));
+  try {
+    const { results } = await db.prepare("SELECT * FROM products ORDER BY category, subcategory, title").all<Row>();
+    if (results.length === 0) return seed.map((p) => ({ ...p, archived: false }));
+    return results.map(fromRow);
+  } catch {
+    return seed.map((p) => ({ ...p, archived: false }));
+  }
+}
+
+/** Products visible in the shop. */
+export async function getProducts(): Promise<Product[]> {
+  return (await allProducts()).filter((p) => !p.archived);
+}
+
+export async function bySlug(slug: string): Promise<Product | undefined> {
+  return (await getProducts()).find((p) => p.slug === slug);
+}
+
+export async function bySku(sku: string): Promise<Product | undefined> {
+  return (await allProducts()).find((p) => p.sku === sku);
+}
+
+export async function byCategory(id: string): Promise<Product[]> {
+  return (await getProducts()).filter((p) => p.category === id);
+}
+
+export async function subcategoriesOf(id: string) {
+  const seen = new Map<string, number>();
+  for (const p of await byCategory(id)) seen.set(p.subcategory, (seen.get(p.subcategory) ?? 0) + 1);
+  return [...seen.entries()].map(([sid, count]) => ({
+    id: sid,
+    count,
+    label: subcategoryLabels[sid] ?? sid,
+  }));
+}
+
+export async function related(p: Product, n = 4): Promise<Product[]> {
+  const all = await getProducts();
+  return all
+    .filter((x) => x.slug !== p.slug && x.subcategory === p.subcategory)
+    .concat(all.filter((x) => x.slug !== p.slug && x.category === p.category))
+    .filter((x, i, a) => a.findIndex((y) => y.slug === x.slug) === i)
+    .slice(0, n);
+}
+
+export async function search(q: string): Promise<Product[]> {
+  const t = q.trim().toLowerCase();
+  if (!t) return [];
+  const terms = t.split(/\s+/);
+  return (await getProducts())
+    .map((p) => {
+      const hay = `${p.title} ${p.sku} ${p.description} ${p.subcategory}`.toLowerCase();
+      return { p, score: terms.reduce((s, term) => s + (hay.includes(term) ? 1 : 0), 0) };
+    })
+    .filter((x) => x.score === terms.length)
+    .sort((a, b) => a.p.title.localeCompare(b.p.title))
+    .map((x) => x.p);
+}
+
+export async function priceRange(id: string) {
+  const ps = (await byCategory(id)).map((p) => p.price);
+  return ps.length ? { min: Math.min(...ps), max: Math.max(...ps) } : { min: 0, max: 0 };
+}
+
+export const wholesaleItems = async () => (await getProducts()).filter((p) => p.wholesale);
+
+/** The bundled seed, for the one place that can't await: client-side cart pricing. */
+export const seedProducts = seed;
 
 export const categories = [
   {
@@ -104,46 +221,3 @@ export const subcategoryLabels: Record<string, string> = {
 };
 
 export const getCategory = (id: string) => categories.find((c) => c.id === id);
-
-export const byCategory = (id: string) => products.filter((p) => p.category === id);
-
-export const bySlug = (slug: string) => products.find((p) => p.slug === slug);
-
-export const subcategoriesOf = (id: string) => {
-  const seen = new Map<string, number>();
-  for (const p of byCategory(id)) seen.set(p.subcategory, (seen.get(p.subcategory) ?? 0) + 1);
-  return [...seen.entries()].map(([id, count]) => ({
-    id,
-    count,
-    label: subcategoryLabels[id] ?? id,
-  }));
-};
-
-export const related = (p: Product, n = 4) =>
-  products
-    .filter((x) => x.slug !== p.slug && x.subcategory === p.subcategory)
-    .concat(products.filter((x) => x.slug !== p.slug && x.category === p.category))
-    .filter((x, i, a) => a.findIndex((y) => y.slug === x.slug) === i)
-    .slice(0, n);
-
-export const search = (q: string) => {
-  const t = q.trim().toLowerCase();
-  if (!t) return [];
-  const terms = t.split(/\s+/);
-  return products
-    .map((p) => {
-      const hay = `${p.title} ${p.sku} ${p.description} ${p.subcategory}`.toLowerCase();
-      const score = terms.reduce((s, term) => s + (hay.includes(term) ? 1 : 0), 0);
-      return { p, score };
-    })
-    .filter((x) => x.score === terms.length)
-    .sort((a, b) => a.p.title.localeCompare(b.p.title))
-    .map((x) => x.p);
-};
-
-export const priceRange = (id: string) => {
-  const ps = byCategory(id).map((p) => p.price);
-  return { min: Math.min(...ps), max: Math.max(...ps) };
-};
-
-export const wholesaleItems = () => products.filter((p) => p.wholesale);
