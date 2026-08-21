@@ -39,6 +39,11 @@ export default async function Shipping() {
           className={`rounded-full px-3 py-1.5 text-[12.5px] font-bold ${
             connected ? "bg-duv-mint/25 text-duv-green" : "bg-duv-line text-duv-muted"
           }`}
+          title={
+            connected
+              ? "SHIPPO_API_KEY is readable by this Worker version."
+              : "This Worker version can't read SHIPPO_API_KEY. Adding a secret in the dashboard creates a new version that isn't promoted — push a commit to rebuild with it."
+          }
         >
           {connected ? "Shippo connected" : "Shippo not connected"}
         </span>
