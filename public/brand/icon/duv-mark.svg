@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256.0 256.0" width="256.0" height="256.0" role="img" aria-label="DUV Collections">
+<title>DUV Collections</title>
+<defs>
+  <linearGradient id="v2_sun" x1="0.05" y1="0" x2="0.95" y2="1">
+    <stop offset="0" stop-color="#FF2E93"/><stop offset="0.55" stop-color="#FF6B3D"/>
+    <stop offset="1" stop-color="#FFC53D"/>
+  </linearGradient>
+  <linearGradient id="v2_grape" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#7B3FF2"/><stop offset="1" stop-color="#FF2E93"/>
+  </linearGradient></defs>
+
+<g transform="scale(2.00000)"><g style="isolation:isolate"><circle cx="64.00" cy="45.00" r="35" fill="#00CFFF" style="mix-blend-mode:multiply"/><circle cx="82.19" cy="76.50" r="35" fill="#FF2E93" style="mix-blend-mode:multiply"/><circle cx="45.81" cy="76.50" r="35" fill="#FFC53D" style="mix-blend-mode:multiply"/></g></g>
+</svg>

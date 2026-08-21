@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* DUV Collections — brand tokens.
+   Mirrors brand/tokens/tokens.css. Change colours here and the whole site follows. */
+@theme {
+  --color-duv-cyan: #00cfff;
+  --color-duv-pink: #ff2e93;
+  --color-duv-amber: #ffc53d;
+  --color-duv-violet: #7b3ff2;
+  --color-duv-mint: #2ee6a8;
+  --color-duv-coral: #ff6b3d;
+
+  /* Overprint mixes, taken from where the inks overlap in the mark */
+  --color-duv-green: #16a34a;
+  --color-duv-red: #e11d48;
+  --color-duv-blue: #1d4ed8;
+
+  /* Neutrals — violet-biased, never pure grey or black */
+  --color-duv-plum: #2e1065;
+  --color-duv-muted: #6f5a96;
+  --color-duv-line: #f0e4e8;
+  --color-duv-cream: #fffcf8;
+
+  /* Soft category tints for product cards */
+  --color-tint-printing: #dff6ff;
+  --color-tint-apparel: #ffe4d6;
+  --color-tint-jewelry: #fff1cc;
+  --color-tint-gifts: #ffe0ef;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --radius-duv: 20px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-duv-cream);
+  color: var(--color-duv-plum);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-duv-pink);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-duv-violet);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
