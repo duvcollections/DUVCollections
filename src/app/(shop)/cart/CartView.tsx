@@ -14,8 +14,10 @@ export function CartView() {
   // the page would make the whole cart route render server-side on every visit.
   const cancelled = useSearchParams().get("cancelled") === "1";
 
-  const { catalog, lines, ready, setQty, remove, subtotal, shipping, total, freeShippingGap, count } =
-    useCart();
+  const {
+    catalog, lines, ready, setQty, remove, subtotal, shipping, total,
+    freeShippingGap, count, shippingLabel, tooHeavyForFree,
+  } = useCart();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -149,10 +151,19 @@ export function CartView() {
       <aside className="rounded-3xl border border-duv-line bg-white p-6 lg:sticky lg:top-28">
         <h2 className="font-display text-xl font-extrabold">Order summary</h2>
 
-        {freeShippingGap > 0 && (
-          <p className="mt-4 rounded-xl bg-tint-printing px-4 py-3 text-[13px] font-semibold text-duv-plum">
-            Add {money(freeShippingGap)} more for free shipping.
+        {/* Only promise free shipping when the basket could actually get it.
+            Heavy baskets are excluded by weight however much is spent, and
+            dangling an offer the customer cannot reach is worse than silence. */}
+        {tooHeavyForFree ? (
+          <p className="mt-4 rounded-xl bg-duv-shell px-4 py-3 text-[13px] text-duv-muted">
+            Shipping is priced by weight for heavier orders.
           </p>
+        ) : (
+          freeShippingGap > 0 && (
+            <p className="mt-4 rounded-xl bg-tint-printing px-4 py-3 text-[13px] font-semibold text-duv-plum">
+              Add {money(freeShippingGap)} more for free shipping.
+            </p>
+          )
         )}
 
         <dl className="mt-5 space-y-2.5 text-[14.5px]">
@@ -161,7 +172,12 @@ export function CartView() {
             <dd className="font-semibold tabular-nums">{money(subtotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-duv-muted">Shipping</dt>
+            <dt className="text-duv-muted">
+              Shipping
+              {shippingLabel && shipping > 0 && (
+                <span className="block text-[12px] text-duv-faint-ink">{shippingLabel}</span>
+              )}
+            </dt>
             <dd className="font-semibold tabular-nums">
               {shipping === 0 ? <span className="text-duv-green-ink">Free</span> : money(shipping)}
             </dd>

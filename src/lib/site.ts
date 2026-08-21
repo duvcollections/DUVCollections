@@ -51,6 +51,14 @@ export const site = {
   policy: {
     shippingFlatRate: 5.99,
     freeShippingThreshold: 75,
+    /**
+     * Free shipping is capped by WEIGHT as well as by spend.
+     *
+     * Spend alone was the old rule, and it lost $12.60 on every $80 roll of DTF
+     * film — a six-pound parcel given away because the order crossed $75. Above
+     * this weight the customer pays the banded rate however much they spend.
+     */
+    freeShippingMaxOz: 32,
     handlingDays: "1–2 business days",
     deliveryEstimate: "3–7 business days after dispatch",
     returnWindowDays: 30,

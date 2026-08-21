@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripeClient, secret } from "@/lib/stripe";
 import { priceCart } from "@/lib/orders";
-import { site, money } from "@/lib/site";
+import { site } from "@/lib/site";
 
 
 /**
@@ -61,10 +61,13 @@ export async function POST(req: NextRequest) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            display_name: priced.freeShipping
-              ? `Free shipping (orders over ${money(site.policy.freeShippingThreshold)})`
-              : "Standard US shipping",
+            display_name: priced.shippingLabel,
             fixed_amount: { amount: priced.shipping, currency: "usd" },
+            // Shipping is taxable in Texas and most US states. Set explicitly
+            // rather than relying on the dashboard's preset, so the behaviour
+            // is visible here and cannot be changed by accident elsewhere.
+            tax_behavior: "exclusive",
+            tax_code: "txcd_92010001", // Shipping
             delivery_estimate: {
               minimum: { unit: "business_day", value: 3 },
               maximum: { unit: "business_day", value: 7 },
@@ -82,6 +85,10 @@ export async function POST(req: NextRequest) {
 
       metadata: {
         skus: priced.lines.map((l) => `${l.sku}x${l.qty}`).join(","),
+        // Charged shipping and parcel weight, so profit-per-order and the
+        // rate-health check can compare against the real label cost later.
+        ship_charged: String(priced.shipping),
+        ship_weight_oz: String(Math.round(priced.weightOz)),
       },
     });
 

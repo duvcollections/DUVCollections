@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { site } from "@/lib/site";
+import { quoteShipping } from "@/lib/shipping-rates";
 
 export type CartLine = { sku: string; qty: number };
 
@@ -14,6 +15,8 @@ export type CartProduct = {
   price: number;
   category: string;
   art: string;
+  /** Shipping weight in ounces — the cart prices parcels by weight. */
+  shipWeightOz: number;
 };
 
 type CartState = {
@@ -29,6 +32,9 @@ type CartState = {
   shipping: number;
   total: number;
   freeShippingGap: number;
+  shippingLabel: string;
+  weightOz: number;
+  tooHeavyForFree: boolean;
 };
 
 const KEY = "duv.cart.v1";
@@ -168,8 +174,15 @@ export function CartProvider({
       const p = catalog.find((x) => x.sku === l.sku);
       return n + (p ? p.price * l.qty : 0);
     }, 0);
-    const qualifies = subtotal >= site.policy.freeShippingThreshold;
-    const shipping = count === 0 || qualifies ? 0 : site.policy.shippingFlatRate;
+    // Must mirror the server exactly. If the cart shows $5.99 and Stripe
+    // charges $17.99, the customer finds out at the payment page — which is the
+    // single most reliable way to lose a sale you had already won.
+    const quote = quoteShipping(
+      lines.map((l) => ({ sku: l.sku, qty: l.qty })),
+      catalog,
+      subtotal,
+    );
+    const shipping = count === 0 ? 0 : quote.amount / 100;
     return {
       catalog,
       lines,
@@ -183,6 +196,10 @@ export function CartProvider({
       shipping,
       total: subtotal + shipping,
       freeShippingGap: Math.max(0, site.policy.freeShippingThreshold - subtotal),
+      shippingLabel: count === 0 ? "" : quote.label,
+      weightOz: quote.weightOz,
+      /** True when the basket is too heavy for free shipping whatever the spend. */
+      tooHeavyForFree: quote.weightOz > site.policy.freeShippingMaxOz,
     };
   }, [catalog, lines, ready, add, setQty, remove, clear]);
 

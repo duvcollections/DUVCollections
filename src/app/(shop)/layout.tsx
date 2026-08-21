@@ -35,6 +35,9 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
     price: p.price,
     category: p.category,
     art: p.art,
+    // Needed to price shipping in the cart. Without it every item looks like
+    // the 4 oz default and a six-pound roll quotes as a pendant.
+    shipWeightOz: p.shipWeightOz ?? 4,
   }));
 
   return (

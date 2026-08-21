@@ -1,5 +1,5 @@
 import { getProducts } from "@/lib/catalog";
-import { site } from "@/lib/site";
+import { quoteShipping } from "@/lib/shipping-rates";
 
 export type IncomingLine = { sku: string; qty: number };
 
@@ -16,6 +16,10 @@ export type PricedCart = {
   subtotal: number;      // cents
   shipping: number;      // cents
   freeShipping: boolean;
+  /** What the customer sees as the shipping option name. */
+  shippingLabel: string;
+  /** Total parcel weight in ounces, used to pick the band and size the parcel. */
+  weightOz: number;
 };
 
 const MAX_QTY = 99;
@@ -63,8 +67,22 @@ export async function priceCart(incoming: unknown): Promise<PricedCart | { error
   }
 
   const subtotal = lines.reduce((n, l) => n + l.unitAmount * l.qty, 0);
-  const freeShipping = subtotal >= Math.round(site.policy.freeShippingThreshold * 100);
-  const shipping = freeShipping ? 0 : Math.round(site.policy.shippingFlatRate * 100);
 
-  return { lines, subtotal, shipping, freeShipping };
+  // Priced by weight, not a flat rate. The flat $5.99 lost money on eight of
+  // the fifty-three SKUs, worst of all on the six-pound DTF roll that shipped
+  // free because it crossed the $75 threshold.
+  const quote = quoteShipping(
+    lines.map((l) => ({ sku: l.sku, qty: l.qty })),
+    products,
+    subtotal / 100,
+  );
+
+  return {
+    lines,
+    subtotal,
+    shipping: quote.amount,
+    freeShipping: quote.free,
+    shippingLabel: quote.label,
+    weightOz: quote.weightOz,
+  };
 }
