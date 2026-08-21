@@ -121,9 +121,37 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
               <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint-ink">Tracking</h2>
               <p className="mt-2 text-[13px] text-duv-muted">{o.carrier}</p>
               <p className="mt-1 break-all font-mono text-[15px] font-bold">{o.tracking}</p>
+              {/* The label lives here, not only in the moment it was bought.
+                  A paid-for label you cannot find again is a label you buy
+                  twice. */}
+              {o.labelUrl ? (
+                <a
+                  href={o.labelUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block rounded-full bg-duv-plum px-6 py-2.5 text-[13.5px] font-bold text-white hover:bg-duv-violet"
+                >
+                  Print label (PDF)
+                </a>
+              ) : (
+                <p className="mt-4 rounded-xl bg-duv-shell px-4 py-3 text-[12.5px] leading-relaxed text-duv-muted">
+                  No label PDF stored for this order. If you bought it through Shippo,
+                  it is on{" "}
+                  <a
+                    href="https://apps.goshippo.com/shipments"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-duv-violet underline underline-offset-2"
+                  >
+                    your Shippo shipments page
+                  </a>{" "}
+                  — search the tracking number above.
+                </p>
+              )}
+
               {url && (
                 <a href={url} target="_blank" rel="noopener noreferrer"
-                   className="mt-3 inline-block text-[13.5px] font-bold text-duv-violet underline underline-offset-4">
+                   className="mt-3 block text-[13.5px] font-bold text-duv-violet underline underline-offset-4">
                   Open carrier tracking ↗
                 </a>
               )}

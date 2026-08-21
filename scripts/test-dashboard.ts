@@ -51,6 +51,7 @@ const order = (over: Partial<Order> & { created: number }): Order => ({
   paymentIntentId: "pi_1",
   skus: [],
   refundedAmount: 0,
+  labelUrl: null,
   ...over,
 });
 

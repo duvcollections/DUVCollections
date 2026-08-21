@@ -37,7 +37,7 @@ export default async function Shipping() {
         </div>
         <span
           className={`rounded-full px-3 py-1.5 text-[12.5px] font-bold ${
-            connected ? "bg-duv-mint/25 text-duv-green" : "bg-duv-line text-duv-muted"
+            connected ? "bg-duv-mint/25 text-duv-green-ink" : "bg-duv-line text-duv-muted"
           }`}
           title={
             connected
@@ -92,7 +92,7 @@ export default async function Shipping() {
           <ul className="mt-4 divide-y divide-duv-plum/10">
             {s.problems.map((p, i) => (
               <li key={`${p.ref}-${p.kind}-${i}`} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5 text-[13.5px]">
-                <Link href={`/admin/orders/${p.id}`} className="font-mono font-bold text-duv-violet hover:text-duv-pink">
+                <Link href={`/admin/orders/${p.id}`} className="font-mono font-bold text-duv-violet hover:text-duv-pink-ink">
                   {p.ref}
                 </Link>
                 <span className="text-duv-plum/80">{p.detail}</span>
@@ -121,7 +121,7 @@ export default async function Shipping() {
               return (
                 <li key={o.id} className="rounded-2xl border border-duv-line bg-white p-5">
                   <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                    <Link href={`/admin/orders/${o.id}`} className="font-mono text-[14px] font-bold text-duv-violet hover:text-duv-pink">
+                    <Link href={`/admin/orders/${o.id}`} className="font-mono text-[14px] font-bold text-duv-violet hover:text-duv-pink-ink">
                       {o.ref}
                     </Link>
                     <span className="text-[14px] font-semibold">{o.name ?? o.email}</span>
@@ -130,7 +130,7 @@ export default async function Shipping() {
                         {a.city}, {a.state} {a.postal_code}
                       </span>
                     )}
-                    <span className="text-[13px] text-duv-faint">
+                    <span className="text-[13px] text-duv-faint-ink">
                       {o.items.reduce((n, i) => n + i.qty, 0)} item(s)
                       {oz !== null ? ` · ${oz} oz` : " · weight unknown"}
                     </span>
@@ -167,7 +167,7 @@ export default async function Shipping() {
               const url = o.carrier && o.tracking ? trackingUrl(o.carrier, o.tracking) : null;
               return (
                 <li key={o.id} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-3 text-[13.5px]">
-                  <Link href={`/admin/orders/${o.id}`} className="font-mono font-bold text-duv-violet hover:text-duv-pink">
+                  <Link href={`/admin/orders/${o.id}`} className="font-mono font-bold text-duv-violet hover:text-duv-pink-ink">
                     {o.ref}
                   </Link>
                   <span>{o.name ?? o.email}</span>
@@ -177,7 +177,19 @@ export default async function Shipping() {
                       {o.tracking}
                     </a>
                   ) : (
-                    <span className="font-mono text-[12.5px] text-duv-faint">{o.tracking}</span>
+                    <span className="font-mono text-[12.5px] text-duv-faint-ink">{o.tracking}</span>
+                  )}
+                  {/* Reprint without opening the order — the common case is a
+                      label that jammed in the printer. */}
+                  {o.labelUrl && (
+                    <a
+                      href={o.labelUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-auto rounded-full border border-duv-line px-3 py-1 text-[12px] font-bold text-duv-muted hover:border-duv-violet hover:text-duv-violet"
+                    >
+                      Label PDF
+                    </a>
                   )}
                 </li>
               );
@@ -206,7 +218,7 @@ export default async function Shipping() {
           </p>
           <a
             href="/api/admin/ship-csv"
-            className="mt-4 inline-block rounded-full bg-duv-pink px-6 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-duv-coral"
+            className="mt-4 inline-block rounded-full bg-duv-pink-deep px-6 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-duv-coral-deep"
           >
             Download {s.waiting.length} unshipped order(s)
           </a>

@@ -30,6 +30,8 @@ export type Order = {
   carrier: string | null;
   tracking: string | null;
   shippedAt: string | null;
+  /** The label PDF, if one was bought through Shippo. Reprintable any time. */
+  labelUrl: string | null;
   paymentIntentId: string | null;
   /** `SKU x qty` pairs recorded at checkout, used to work out parcel weight. */
   skus: { sku: string; qty: number }[];
@@ -84,6 +86,7 @@ function toOrder(s: Stripe.Checkout.Session): Order {
     carrier: m.carrier ?? null,
     tracking: m.tracking ?? null,
     shippedAt: m.shipped_at ?? null,
+    labelUrl: m.label_url ?? null,
     paymentIntentId:
       typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null,
     skus: parseSkus(m.skus),
@@ -173,6 +176,7 @@ export async function markShipped(
   id: string,
   carrier: string,
   tracking: string,
+  labelUrl?: string | null,
 ): Promise<Order> {
   const stripe = stripeClient(await secret("STRIPE_SECRET_KEY"));
   const s = await stripe.checkout.sessions.update(id, {
@@ -180,6 +184,13 @@ export async function markShipped(
       carrier: carrier.trim(),
       tracking: tracking.trim(),
       shipped_at: new Date().toISOString(),
+      // Persisted deliberately. Without this the label PDF exists only in the
+      // response that bought it — close the tab and the only way back to a
+      // label you have already paid for is the Shippo dashboard. Stripe
+      // metadata values cap at 500 characters; Shippo's URLs are far shorter,
+      // but truncating silently would store a broken link, so an over-long one
+      // is dropped instead and the Shippo fallback in the UI takes over.
+      ...(labelUrl && labelUrl.length <= 480 ? { label_url: labelUrl } : {}),
     },
   });
   const full = await stripe.checkout.sessions.retrieve(s.id, { expand: ["line_items"] });
