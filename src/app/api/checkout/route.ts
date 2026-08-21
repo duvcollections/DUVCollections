@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   }
 
   const cart = (body as { lines?: unknown })?.lines;
-  const priced = priceCart(cart);
+  const priced = await priceCart(cart);
   if ("error" in priced) {
     return NextResponse.json({ error: priced.error }, { status: 400 });
   }

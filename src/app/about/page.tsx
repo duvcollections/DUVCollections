@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { site } from "@/lib/site";
-import { products, categories } from "@/lib/catalog";
+import { getProducts, categories } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "About",
@@ -10,7 +10,8 @@ export const metadata: Metadata = {
     "DUV Prints and Gifts USA LLC — a family-run US supplier of DTF printing materials, custom printing, gold-plated jewelry and gifts.",
 };
 
-export default function About() {
+export default async function About() {
+  const products = await getProducts();
   return (
     <>
       <PageHeader

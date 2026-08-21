@@ -35,8 +35,8 @@ export default async function CategoryPage({
   const c = getCategory(category);
   if (!c) notFound();
 
-  const subs = subcategoriesOf(category);
-  const all = byCategory(category);
+  const subs = await subcategoriesOf(category);
+  const all = await byCategory(category);
   let items = sub ? all.filter((p) => p.subcategory === sub) : all;
   if (lot === "1") items = items.filter((p) => p.wholesale);
   const lotCount = (sub ? all.filter((p) => p.subcategory === sub) : all).filter(

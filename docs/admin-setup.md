@@ -1,14 +1,14 @@
 # Turning the admin on
 
-The admin exists at `/admin` in the code you already have. It stays locked until
-three things are configured. Do them in this order — each one is independent, and
-the site keeps serving customers the whole time.
+**Steps 1 and 2 are already done** — configured on 21 August 2026. This file is
+now the record of what was set up and where to change it, plus the one step that
+is still open.
 
-| # | Piece | What it gives you | Cost |
-|---|---|---|---|
-| 1 | **Cloudflare Access** | The login on `/admin`. Nothing works without it. | Free up to 50 users |
-| 2 | **D1 database** | Add / edit / archive products from the browser | Free tier is far more than this store needs |
-| 3 | **Resend** | The "your order shipped" email with tracking | Free up to 3,000 emails/month |
+| # | Piece | Status |
+|---|---|---|
+| 1 | **Cloudflare Access** — the login on `/admin` | ✅ Done |
+| 2 | **D1 database** — add / edit / archive products | ✅ Done |
+| 3 | **Resend** — the "your order shipped" email | ⚠️ Key is set; verify the domain |
 
 Orders and sales need **none** of these beyond step 1 — they read from Stripe,
 which already has every order. There is no second orders database to keep in sync,
@@ -16,111 +16,74 @@ and nothing to back up.
 
 ---
 
-## 1. Cloudflare Access — the login (do this first)
+## 1. Cloudflare Access — done
 
-Without this, `/admin` shows a "Not signed in" notice and refuses to load anything.
-That is the safe default, but it also means the admin is useless until you finish
-this step.
+**Application:** `DUV Admin` (Zero Trust → Access controls → Applications)
 
-**a. Create the application**
+| Setting | Value |
+|---|---|
+| Type | Self-hosted |
+| Destination 1 | `duvcollections.com/admin` |
+| Destination 2 | `duvcollections.com/api/admin` |
+| Session duration | 24 hours |
+| Policy | `DUV Admins` — Allow, Include → Emails |
+| Allowed emails | tony@, sales@, info@duvcollections.com |
 
-1. Cloudflare dashboard → **Zero Trust** → **Access** → **Applications** → **Add an application** → **Self-hosted**
-2. Application name: `DUV Admin`
-3. Session duration: `24 hours`
-4. Public hostname: domain `duvcollections.com`, path `admin`
-5. **Add another** public hostname on the same application: domain `duvcollections.com`, path `api/admin`
-   — this is the one people forget. The pages and the endpoints they post to are
-   different paths; protecting only `admin` leaves the endpoints exposed.
-6. Save.
+Both destinations matter. The pages and the endpoints they post to are different
+paths; protecting only `admin` would leave the endpoints exposed.
 
-**b. Add the policy**
-
-1. On the application → **Policies** → **Add a policy**
-2. Name: `Admins`, Action: `Allow`
-3. Include → **Emails** → add `tony@duvcollections.com` (and any other address that
-   should get in)
-4. Save.
-
-**c. Collect the two values the code needs**
-
-- **Team domain** — Zero Trust → **Settings** → **Custom Pages** (or the URL you
-  log in at). It looks like `yourteam.cloudflareaccess.com`. No `https://`.
-- **Application Audience (AUD) tag** — on the application's **Overview** tab.
-  A long hex string.
-
-**d. Set the secrets**
-
-Cloudflare dashboard → **Compute (Workers)** → `duvcollections` → **Settings** →
-**Variables and Secrets**. Make sure you are in the **runtime** table, not the
-Build one, and set each **Type: Secret**:
+**Worker secrets** (Compute → duvcollections → Settings → Variables and Secrets,
+runtime table, all type **Secret**):
 
 | Name | Value |
 |---|---|
-| `CF_ACCESS_TEAM_DOMAIN` | `yourteam.cloudflareaccess.com` |
-| `CF_ACCESS_AUD` | the AUD tag |
-| `ADMIN_EMAILS` | `tony@duvcollections.com` (comma-separated for more) |
+| `CF_ACCESS_TEAM_DOMAIN` | `withered-mode-da25.cloudflareaccess.com` |
+| `CF_ACCESS_AUD` | `20e26ef31183b69439bbd8247a3eff42b860edb26620bb885fa4c7580826a215` |
+| `ADMIN_EMAILS` | `tony@duvcollections.com,sales@duvcollections.com,info@duvcollections.com` |
 
 `ADMIN_EMAILS` is a second gate on purpose. Access policies get widened by accident
 — someone adds a group, or an "everyone at this domain" rule. This list does not.
 A valid Access token for an address that is not on it still gets refused.
 
-**e. Close the back door**
+**The workers.dev back door is closed.** Cloudflare gives every Worker a
+`*.workers.dev` URL, and **Access does not protect it** — Access protects the
+hostname, and that is a different hostname. Both
+`duvcollections.tony-4b6.workers.dev` and the `*-duvcollections.tony-4b6.workers.dev`
+preview wildcard are now **disabled** under Domains. The custom domains
+(duvcollections.com and www) are untouched.
 
-Cloudflare gives every Worker a `duvcollections.<something>.workers.dev` URL.
-**Access does not protect it** — it protects the hostname, and that is a different
-hostname. Anyone who finds it walks straight past the login.
+If you ever re-enable one for testing, remember it bypasses the login.
 
-Compute (Workers) → `duvcollections` → **Settings** → **Domains & Routes** →
-find the `workers.dev` route → **Disable**.
+### To add or remove an admin later
 
-The code verifies the Access JWT signature rather than trusting the header, so even
-if that URL stayed open the admin would still refuse. Disable it anyway — defence
-in depth is cheap here.
+Change it in **two** places or it won't take effect:
 
-**f. Check it**
+1. Zero Trust → Access → Applications → DUV Admin → Policies → `DUV Admins` → Emails
+2. Compute → duvcollections → Settings → Variables and Secrets → `ADMIN_EMAILS`
 
-Open `https://duvcollections.com/admin` in a private window. You should get a
-Cloudflare login, then the dashboard with your email in the top right. If you get
-"Not signed in", the Access application isn't covering the path — recheck step a.
+The secret is the one that actually decides. The policy just controls who gets as
+far as the login screen.
 
 ---
 
-## 2. D1 — the product database
+## 2. D1 — done
 
-Until this exists, the shop serves the catalogue from `src/data/products.json` and
-the admin's product screens are read-only. Orders, shipping and sales all work fine
-without it.
+| Setting | Value |
+|---|---|
+| Database name | `duvcollections` |
+| Database id | `3707b26b-20c6-42d2-a45a-2314b081a875` |
+| Tables | `products`, `product_audit` |
+| Binding | `DB` (in `wrangler.jsonc`) |
 
-Run these on your own machine, in the project folder:
+The id is already in `wrangler.jsonc` and both tables are created. The id is not a
+secret — it is just an identifier, which is why it lives in the config file rather
+than the secrets table.
 
-```bash
-npx wrangler login
-npx wrangler d1 create duvcollections
-```
-
-The output ends with a block containing `database_id = "..."`. Copy that id into
-`wrangler.jsonc`, replacing `REPLACE_WITH_YOUR_D1_DATABASE_ID`:
-
-```jsonc
-"d1_databases": [
-  { "binding": "DB", "database_name": "duvcollections", "database_id": "paste-it-here" }
-]
-```
-
-Then create the tables:
-
-```bash
-npx wrangler d1 execute duvcollections --remote --file=migrations/0001_init.sql
-```
-
-Commit and push `wrangler.jsonc`. Cloudflare rebuilds and the binding goes live.
-
-**Seed it.** Go to `/admin/products` and press **Import catalogue**. That copies the
-products from the JSON file into D1 once. From then on D1 is the source of truth and
-the JSON file is only a fallback — editing the file no longer changes the shop.
-
-The database id is not a secret; it is just an identifier, which is why it lives in
-the config file rather than in the secrets table.
+**One thing left to do here:** once the site deploys, go to `/admin/products` and
+press **Import catalogue**. That copies the products from `src/data/products.json`
+into D1 once. Until you do, the shop still serves from the JSON file and the product
+screens stay read-only. After you do, **D1 is the source of truth** and editing the
+JSON file no longer changes anything.
 
 ### What the product screens do
 
@@ -132,14 +95,22 @@ the config file rather than in the secrets table.
 - **Every change is logged** to `product_audit` with the email that made it. When a
   price looks wrong three weeks later, you can see who changed it and when.
 
+To run future migrations without the CLI: D1 → duvcollections → **Console**, and
+paste one statement at a time.
+
 ---
 
-## 3. Resend — shipping emails
+## 3. Resend — shipping emails (key set, domain needs checking)
 
-Skip this and everything still works; you just mark orders shipped without the
-customer being emailed automatically (Stripe still sends the receipt at purchase).
+`RESEND_API_KEY` is already in the Worker secrets. What I could not check from the
+Cloudflare side is whether **duvcollections.com is verified in Resend** — without
+that, Resend refuses to send from `sales@duvcollections.com` and the shipping email
+silently fails.
 
-1. Sign up at **resend.com** with `tony@duvcollections.com`
+Open resend.com → **Domains**. If duvcollections.com shows **Verified**, you're done
+and nothing below is needed. If it doesn't, work through this:
+
+1. Sign in at **resend.com** as `tony@duvcollections.com`
 2. **Domains** → **Add domain** → `duvcollections.com`
 3. Resend shows three DNS records. Add each one in Cloudflare → **DNS** →
    **Records** for duvcollections.com:

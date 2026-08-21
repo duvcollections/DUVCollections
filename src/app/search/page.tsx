@@ -11,7 +11,7 @@ export default async function SearchPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q = "" } = await searchParams;
-  const results = search(q);
+  const results = await search(q);
 
   return (
     <>

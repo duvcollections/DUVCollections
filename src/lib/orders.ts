@@ -1,4 +1,4 @@
-import { products } from "@/lib/catalog";
+import { getProducts } from "@/lib/catalog";
 import { site } from "@/lib/site";
 
 export type IncomingLine = { sku: string; qty: number };
@@ -28,7 +28,8 @@ const MAX_LINES = 40;
  * up here, server-side. This is the single most important rule in a checkout: a
  * client that can name its own price will eventually be asked to.
  */
-export function priceCart(incoming: unknown): PricedCart | { error: string } {
+export async function priceCart(incoming: unknown): Promise<PricedCart | { error: string }> {
+  const products = await getProducts();
   if (!Array.isArray(incoming)) return { error: "Cart must be a list of items." };
   if (incoming.length === 0) return { error: "Your cart is empty." };
   if (incoming.length > MAX_LINES) return { error: "Too many different items in one order." };

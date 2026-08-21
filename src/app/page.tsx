@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Overprint } from "@/components/Overprint";
 import { TrustBar } from "@/components/TrustBar";
 import { ProductGrid } from "@/components/ProductCard";
-import { categories, byCategory, products, priceRange } from "@/lib/catalog";
+import { categories, byCategory, getProducts, priceRange } from "@/lib/catalog";
 import { site, money } from "@/lib/site";
 
 const featured = [
@@ -16,10 +16,19 @@ const featured = [
   "WBG006",
 ];
 
-export default function Home() {
+export default async function Home() {
+  const products = await getProducts();
   const picks = featured
     .map((sku) => products.find((p) => p.sku === sku))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+  const cats = await Promise.all(
+    categories.map(async (c) => ({
+      ...c,
+      count: (await byCategory(c.id)).length,
+      min: (await priceRange(c.id)).min,
+    })),
+  );
 
   return (
     <>
@@ -84,9 +93,8 @@ export default function Home() {
         </p>
 
         <ul className="mt-9 grid gap-5 md:grid-cols-3">
-          {categories.map((c) => {
-            const count = byCategory(c.id).length;
-            const { min } = priceRange(c.id);
+          {cats.map((c) => {
+            const { count, min } = c;
             return (
               <li key={c.id}>
                 <Link

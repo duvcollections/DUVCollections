@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { ProductGrid } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { products, categories, byCategory } from "@/lib/catalog";
+import { getProducts, categories, byCategory } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Shop all products",
@@ -11,7 +11,12 @@ export const metadata: Metadata = {
     "The full DUV Collections catalogue — DTF supplies, heat transfer paper, gold-plated jewelry and sunglasses.",
 };
 
-export default function ShopAll() {
+export default async function ShopAll() {
+  const products = await getProducts();
+  const counts = Object.fromEntries(
+    await Promise.all(categories.map(async (c) => [c.id, (await byCategory(c.id)).length] as const)),
+  ) as Record<string, number>;
+
   return (
     <>
       <PageHeader
@@ -30,7 +35,7 @@ export default function ShopAll() {
               className="rounded-full border border-duv-line bg-white px-4 py-2 text-[13.5px] font-semibold text-duv-plum transition-colors hover:border-duv-violet hover:text-duv-violet"
             >
               {c.name}
-              <span className="ml-1.5 text-duv-faint">{byCategory(c.id).length}</span>
+              <span className="ml-1.5 text-duv-faint">{counts[c.id]}</span>
             </Link>
           ))}
         </div>

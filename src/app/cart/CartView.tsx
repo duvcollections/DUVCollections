@@ -4,11 +4,11 @@ import Link from "next/link";
 import { ProductImage } from "@/components/ProductImage";
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
-import { products } from "@/lib/catalog";
+
 import { site, money } from "@/lib/site";
 
 export function CartView({ cancelled = false }: { cancelled?: boolean }) {
-  const { lines, ready, setQty, remove, subtotal, shipping, total, freeShippingGap, count } =
+  const { catalog, lines, ready, setQty, remove, subtotal, shipping, total, freeShippingGap, count } =
     useCart();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +76,7 @@ export function CartView({ cancelled = false }: { cancelled?: boolean }) {
     <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
       <ul className="divide-y divide-duv-line rounded-3xl border border-duv-line bg-white">
         {lines.map((l) => {
-          const p = products.find((x) => x.sku === l.sku);
+          const p = catalog.find((x) => x.sku === l.sku);
           if (!p) return null;
           return (
             <li key={l.sku} className="flex gap-4 p-4 sm:gap-5 sm:p-5">

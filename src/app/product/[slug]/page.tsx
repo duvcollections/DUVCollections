@@ -5,13 +5,13 @@ import { ProductImage, hasPhoto } from "@/components/ProductImage";
 import { AddToCart } from "@/components/AddToCart";
 import { ProductGrid } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { products, bySlug, getCategory, related, subcategoryLabels, availability } from "@/lib/catalog";
+import { getProducts, bySlug, getCategory, related, subcategoryLabels, availability } from "@/lib/catalog";
 import { site, money } from "@/lib/site";
 
 type Params = { slug: string };
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getProducts()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -20,7 +20,7 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const p = bySlug(slug);
+  const p = await bySlug(slug);
   if (!p) return {};
   return {
     title: p.seoTitle,
@@ -38,7 +38,7 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const p = bySlug(slug);
+  const p = await bySlug(slug);
   if (!p) notFound();
 
   const cat = getCategory(p.category)!;
@@ -241,7 +241,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
         <h2 className="mb-6 font-display text-2xl font-extrabold tracking-[-0.02em]">
           You might also need
         </h2>
-        <ProductGrid items={related(p)} />
+        <ProductGrid items={await related(p)} />
       </section>
     </div>
   );

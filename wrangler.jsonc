@@ -12,7 +12,7 @@
     {
       "binding": "DB",
       "database_name": "duvcollections",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+      "database_id": "3707b26b-20c6-42d2-a45a-2314b081a875"
     }
   ],
   "observability": {
