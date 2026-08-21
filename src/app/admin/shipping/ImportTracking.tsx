@@ -48,9 +48,9 @@ export function ImportTracking() {
 
   return (
     <form onSubmit={submit} className="rounded-2xl border border-duv-line bg-white p-6">
-      <h2 className="font-display text-lg font-extrabold tracking-tight">
+      <h3 className="font-display text-[15px] font-extrabold tracking-tight">
         2. Bring the tracking numbers back
-      </h2>
+      </h3>
       <p className="mt-1.5 max-w-[64ch] text-[13.5px] leading-relaxed text-duv-muted">
         In Pirate Ship, open <strong className="text-duv-plum">Ships</strong> and export the batch,
         then paste it below. Column order doesn&rsquo;t matter — it finds the reference and the
