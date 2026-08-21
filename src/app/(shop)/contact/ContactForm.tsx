@@ -5,7 +5,7 @@ import { CONTACT_TOPICS } from "@/lib/contact-topics";
 import { site } from "@/lib/site";
 
 const field =
-  "w-full rounded-2xl border border-duv-line bg-white px-4 py-3 text-[15px] text-duv-plum placeholder:text-duv-faint focus:border-duv-violet focus:outline-none";
+  "w-full rounded-2xl border border-duv-line bg-white px-4 py-3 text-[15px] text-duv-plum placeholder:text-duv-faint-ink focus:border-duv-violet focus:outline-none";
 
 export function ContactForm() {
   // Stamped once on mount. The endpoint compares it against arrival time —
@@ -17,7 +17,35 @@ export function ContactForm() {
     startedAt.current = Date.now();
   }, []);
 
-  const [topic, setTopic] = useState<string>(CONTACT_TOPICS[0]);
+  /**
+   * Prefilled from `?ref=&topic=`, so the "something's wrong" button on the
+   * order confirmation arrives with the reference already in the field.
+   *
+   * Read through a lazy useState initialiser rather than an effect: an effect
+   * that calls setState immediately causes a second render pass for no reason,
+   * and this value never changes after mount. `useSearchParams` would be the
+   * idiomatic hook, but it bails the whole subtree to client-side rendering
+   * unless wrapped in Suspense — which would cost this page its prerendered
+   * HTML. The initialiser runs on the client only; the server pass sees "" and
+   * hydration replaces it, which is correct because the server has no URL
+   * query string to read.
+   */
+  const readQuery = (key: string): string => {
+    if (typeof window === "undefined") return "";
+    try {
+      return new URLSearchParams(window.location.search).get(key) ?? "";
+    } catch {
+      return "";
+    }
+  };
+
+  const [orderRef, setOrderRef] = useState(() =>
+    readQuery("ref").toUpperCase().slice(0, 40),
+  );
+  const [topic, setTopic] = useState<string>(() => {
+    const t = readQuery("topic");
+    return (CONTACT_TOPICS as readonly string[]).includes(t) ? t : CONTACT_TOPICS[0];
+  });
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +93,7 @@ export function ContactForm() {
         <button
           type="button"
           onClick={() => setSent(false)}
-          className="mt-5 text-[14px] font-bold text-duv-violet underline decoration-2 underline-offset-4 hover:text-duv-pink"
+          className="mt-5 text-[14px] font-bold text-duv-violet underline decoration-2 underline-offset-4 hover:text-duv-pink-ink"
         >
           Send another
         </button>
@@ -122,15 +150,17 @@ export function ContactForm() {
 
         <label className="block">
           <span className="mb-1.5 block text-[13px] font-bold text-duv-plum">
-            Order reference <span className="font-normal text-duv-faint">(optional)</span>
+            Order reference <span className="font-normal text-duv-faint-ink">(optional)</span>
           </span>
           <input
             name="orderRef"
             maxLength={40}
             placeholder="A1B2C3D4E5F6"
+            value={orderRef}
+            onChange={(e) => setOrderRef(e.target.value.toUpperCase())}
             className={`${field} font-mono uppercase`}
           />
-          <span className="mt-1.5 block text-[12.5px] text-duv-faint">
+          <span className="mt-1.5 block text-[12.5px] text-duv-faint-ink">
             Including it gets you a real answer in one reply instead of three.
           </span>
         </label>
@@ -171,12 +201,12 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-6 rounded-full bg-duv-pink px-8 py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-duv-coral disabled:bg-duv-faint"
+        className="mt-6 rounded-full bg-duv-pink-deep px-8 py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-duv-coral-deep disabled:bg-duv-faint"
       >
         {busy ? "Sending…" : "Send message"}
       </button>
 
-      <p className="mt-4 text-[12.5px] leading-relaxed text-duv-faint">
+      <p className="mt-4 text-[12.5px] leading-relaxed text-duv-faint-ink">
         We use what you write here to answer you and nothing else. See our{" "}
         <a className="underline underline-offset-2" href="/policies/privacy">
           privacy policy

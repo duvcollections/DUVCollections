@@ -74,22 +74,30 @@ export default async function Success({
         <div className="mt-10 rounded-3xl bg-tint-printing p-7">
           <h2 className="font-display text-[19px] font-extrabold">Something not right?</h2>
           <p className="mt-2 text-[14.5px] leading-relaxed text-duv-plum/75">
-            Email{" "}
-            <a
-              className="font-semibold underline underline-offset-2"
-              href={`mailto:${site.contact.support}`}
-            >
-              {site.contact.support}
-            </a>{" "}
-            with your reference above. If the shipping address is wrong, tell us immediately —
-            we can change it free before the label is printed.
+            If the shipping address is wrong, tell us immediately — we can change it free
+            before the label is printed. Your reference is filled in already, so there is
+            nothing to copy across.
           </p>
+          {/* A button rather than a mailto: a mailto assumes a desktop mail client is
+              configured, which on a phone is often false and on a work machine is often
+              the wrong account. This lands in the same inbox either way, with the order
+              reference already attached. */}
+          <Link
+            href={
+              session_id
+                ? `/contact?ref=${encodeURIComponent(session_id.slice(-12).toUpperCase())}&topic=${encodeURIComponent("Order or delivery question")}`
+                : "/contact"
+            }
+            className="mt-5 inline-block rounded-full bg-duv-plum px-7 py-3.5 text-[15px] font-bold text-white hover:bg-duv-violet"
+          >
+            Contact us about this order
+          </Link>
         </div>
 
         <div className="mt-10 flex flex-wrap gap-4">
           <Link
             href="/shop"
-            className="rounded-full bg-duv-pink px-7 py-3.5 text-[15px] font-bold text-white hover:bg-duv-coral"
+            className="rounded-full bg-duv-pink-deep px-7 py-3.5 text-[15px] font-bold text-white hover:bg-duv-coral-deep"
           >
             Keep shopping
           </Link>

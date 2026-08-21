@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripeClient, cryptoProvider, secret } from "@/lib/stripe";
-import { sendConfirmationEmail, sendLowStockEmail, sendAbandonedCartEmail } from "@/lib/email";
+import {
+  sendConfirmationEmail,
+  sendLowStockEmail,
+  sendAbandonedCartEmail,
+  sendNewOrderEmail,
+} from "@/lib/email";
 import { applyStockForOrder, lowStockCrossings, claimCartReminder } from "@/lib/products-repo";
 import { site } from "@/lib/site";
 
@@ -96,23 +101,73 @@ export async function POST(req: NextRequest) {
       // Wrapped so a mail failure can never reach the return below. Stripe
       // retries any non-2xx for days, and a retried "payment succeeded" is how
       // a shop ends up shipping the same order twice.
+      // One retrieve, two emails. Fetching the line items twice would double the
+      // Stripe calls on the hottest path in the app for no benefit.
+      let lineItems: { title: string; qty: number; amount?: number }[] = [];
+      try {
+        const full = await stripe.checkout.sessions.retrieve(s.id, { expand: ["line_items"] });
+        lineItems =
+          full.line_items?.data.map((li) => ({
+            title: li.description ?? "Item",
+            qty: li.quantity ?? 1,
+            amount: (li.amount_total ?? 0) / 100,
+          })) ?? [];
+      } catch (err) {
+        console.error("[order] could not load line items:", err);
+      }
+
+      const addr = s.collected_information?.shipping_details?.address
+        ?? s.customer_details?.address
+        ?? null;
+      const shipName = s.collected_information?.shipping_details?.name
+        ?? s.customer_details?.name
+        ?? null;
+
+      const addressLines = addr
+        ? [
+            shipName,
+            addr.line1,
+            addr.line2,
+            [addr.city, addr.state, addr.postal_code].filter(Boolean).join(", "),
+            addr.country,
+          ].filter((l): l is string => Boolean(l))
+        : [];
+
+      // Tell the shop a sale happened. Sent before the customer email because
+      // if only one of the two can get through, this is the one that causes a
+      // parcel to be packed.
+      try {
+        const sent = await sendNewOrderEmail({
+          to: site.contact.sales,
+          orderRef: s.id.slice(-12).toUpperCase(),
+          sessionId: s.id,
+          customerName: shipName,
+          customerEmail: s.customer_details?.email ?? null,
+          items: lineItems,
+          total: (s.amount_total ?? 0) / 100,
+          addressLines,
+        });
+        if (!sent.ok) console.error(`[order] sales notification failed: ${sent.error}`);
+      } catch (err) {
+        console.error("[order] sales notification threw:", err);
+      }
+
       if (s.customer_details?.email) {
         try {
-          const full = await stripe.checkout.sessions.retrieve(s.id, {
-            expand: ["line_items"],
-          });
           const result = await sendConfirmationEmail({
             to: s.customer_details.email,
             name: s.customer_details.name ?? null,
             orderRef: s.id.slice(-12).toUpperCase(),
             sessionId: s.id,
-            items:
-              full.line_items?.data.map((li) => ({
-                title: li.description ?? "Item",
-                qty: li.quantity ?? 1,
-              })) ?? [],
+            items: lineItems,
             total: (s.amount_total ?? 0) / 100,
             nowMs: Date.now(),
+            breakdown: {
+              subtotal: (s.amount_subtotal ?? 0) / 100,
+              shipping: (s.total_details?.amount_shipping ?? 0) / 100,
+              tax: (s.total_details?.amount_tax ?? 0) / 100,
+            },
+            addressLines,
           });
           if (!result.ok) console.error(`[order] confirmation email failed: ${result.error}`);
         } catch (err) {
@@ -145,6 +200,7 @@ export async function POST(req: NextRequest) {
           full.line_items?.data.map((li) => ({
             title: li.description ?? "Item",
             qty: li.quantity ?? 1,
+            amount: (li.amount_total ?? 0) / 100,
           })) ?? [];
 
         // An expired session with no line items is not worth an email.
