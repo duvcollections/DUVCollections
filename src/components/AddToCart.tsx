@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/components/Analytics";
 import { useCart } from "@/lib/cart";
 
 export function AddToCart({
@@ -20,13 +21,16 @@ export function AddToCart({
       type="button"
       onClick={() => {
         add(sku, 1);
+        // One of the four funnel steps. Product identity only — no price, so
+        // the analytics provider never holds anything resembling order data.
+        trackEvent("Add to cart", { sku });
         setAdded(true);
         window.setTimeout(() => setAdded(false), 1600);
       }}
       className={
         size === "sm"
           ? "w-full rounded-full bg-duv-plum px-4 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-duv-violet"
-          : "rounded-full bg-duv-pink px-8 py-4 text-[15px] font-bold text-white transition-colors hover:bg-duv-coral"
+          : "rounded-full bg-duv-pink-deep px-8 py-4 text-[15px] font-bold text-white transition-colors hover:bg-duv-coral-deep"
       }
     >
       {/* aria-live so screen-reader users hear the confirmation too */}

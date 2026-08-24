@@ -52,6 +52,7 @@ const order = (over: Partial<Order> & { created: number }): Order => ({
   skus: [],
   refundedAmount: 0,
   labelUrl: null,
+  labelCost: null,
   ...over,
 });
 

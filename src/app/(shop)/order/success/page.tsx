@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { ClearCart } from "./ClearCart";
+import { TrackView } from "@/components/TrackView";
 import { orderTrackingLink, nowMs } from "@/lib/order-token";
 import { site } from "@/lib/site";
 
@@ -29,6 +30,9 @@ export default async function Success({
   return (
     <>
       <ClearCart />
+      {/* Closes the funnel. No amount is sent — the reference is enough to
+          count conversions, and order values belong in Stripe, not here. */}
+      <TrackView event="Purchase" />
       <PageHeader
         eyebrow="Thank you"
         title="Your order is confirmed"

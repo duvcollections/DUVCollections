@@ -5,6 +5,7 @@ import { ProductImage, hasPhoto } from "@/components/ProductImage";
 import { AddToCart } from "@/components/AddToCart";
 import { ProductGrid } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { TrackView } from "@/components/TrackView";
 import { getProducts, bySlug, getCategory, related, subcategoryLabels, availability } from "@/lib/catalog";
 import { site, money } from "@/lib/site";
 
@@ -94,6 +95,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }}
       />
+      <TrackView event="Product viewed" props={{ sku: p.sku, category: p.category }} />
       <Breadcrumbs
         trail={[
           { href: "/", label: "Home" },

@@ -13,6 +13,8 @@ const NAV = [
   { href: "/admin/shipping", label: "Shipping" },
   { href: "/admin/sales", label: "Sales" },
   { href: "/admin/discounts", label: "Discounts" },
+  { href: "/admin/customers", label: "Customers" },
+  { href: "/admin/channels", label: "Channels" },
   { href: "/admin/ebay", label: "eBay" },
 ];
 

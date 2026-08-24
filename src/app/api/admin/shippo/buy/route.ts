@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
   let saved = true;
   try {
-    await markShipped(order.id, carrier, label.tracking, label.labelUrl);
+    await markShipped(order.id, carrier, label.tracking, label.labelUrl, label.amount);
   } catch (err) {
     // The label is bought and paid for. Say so loudly rather than pretending
     // the whole thing failed — the postage is spent either way.

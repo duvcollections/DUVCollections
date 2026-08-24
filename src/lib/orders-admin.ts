@@ -32,6 +32,8 @@ export type Order = {
   shippedAt: string | null;
   /** The label PDF, if one was bought through Shippo. Reprintable any time. */
   labelUrl: string | null;
+  /** What the label actually cost, in dollars. Null when not bought here. */
+  labelCost: number | null;
   paymentIntentId: string | null;
   /** `SKU x qty` pairs recorded at checkout, used to work out parcel weight. */
   skus: { sku: string; qty: number }[];
@@ -105,6 +107,10 @@ function toOrder(s: Stripe.Checkout.Session): Order {
     tracking: m.tracking ?? null,
     shippedAt: m.shipped_at ?? null,
     labelUrl: m.label_url ?? null,
+    labelCost:
+      m.label_cost !== undefined && m.label_cost !== "" && Number.isFinite(Number(m.label_cost))
+        ? Number(m.label_cost)
+        : null,
     paymentIntentId:
       typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id ?? null,
     skus: parseSkus(m.skus),
@@ -196,6 +202,7 @@ export async function markShipped(
   carrier: string,
   tracking: string,
   labelUrl?: string | null,
+  labelCost?: number | null,
 ): Promise<Order> {
   const stripe = stripeClient(await secret("STRIPE_SECRET_KEY"));
   const s = await stripe.checkout.sessions.update(id, {
@@ -210,6 +217,11 @@ export async function markShipped(
       // but truncating silently would store a broken link, so an over-long one
       // is dropped instead and the Shippo fallback in the UI takes over.
       ...(labelUrl && labelUrl.length <= 480 ? { label_url: labelUrl } : {}),
+      // Recorded so profit per order can be worked out later without a
+      // second trip to Shippo for something we already knew at purchase.
+      ...(typeof labelCost === "number" && Number.isFinite(labelCost)
+        ? { label_cost: labelCost.toFixed(2) }
+        : {}),
     },
   });
   const full = await stripe.checkout.sessions.retrieve(s.id, {
