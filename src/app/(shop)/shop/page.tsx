@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { ProductGrid } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { getProducts, categories, byCategory } from "@/lib/catalog";
+import { getProducts, visibleCategories, byCategory } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Shop all products",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function ShopAll() {
   const products = await getProducts();
   const counts = Object.fromEntries(
-    await Promise.all(categories.map(async (c) => [c.id, (await byCategory(c.id)).length] as const)),
+    await Promise.all((await visibleCategories()).map(async (c) => [c.id, (await byCategory(c.id)).length] as const)),
   ) as Record<string, number>;
 
   return (
@@ -28,14 +28,14 @@ export default async function ShopAll() {
         <Breadcrumbs trail={[{ href: "/", label: "Home" }, { label: "Shop" }]} />
 
         <div className="mb-8 flex flex-wrap gap-2">
-          {categories.map((c) => (
+          {(await visibleCategories()).map((c) => (
             <Link
               key={c.id}
               href={`/shop/${c.id}`}
               className="rounded-full border border-duv-line bg-white px-4 py-2 text-[13.5px] font-semibold text-duv-plum transition-colors hover:border-duv-violet hover:text-duv-violet"
             >
               {c.name}
-              <span className="ml-1.5 text-duv-faint">{counts[c.id]}</span>
+              <span className="ml-1.5 text-duv-faint-ink">{counts[c.id]}</span>
             </Link>
           ))}
         </div>

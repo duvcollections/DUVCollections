@@ -1,12 +1,21 @@
 import Image from "next/image";
 import { categories } from "@/lib/catalog";
 import { ProductArt } from "@/components/ProductArt";
-import images from "@/data/product-images.json";
+import bundledImages from "@/data/product-images.json";
 
-const PHOTOS = images as Record<string, string[]>;
+const PHOTOS = bundledImages as Record<string, string[]>;
 
-export const hasPhoto = (sku: string) => Boolean(PHOTOS[sku]?.length);
-export const photosFor = (sku: string) => PHOTOS[sku] ?? [];
+/**
+ * Photos for a SKU.
+ *
+ * Images saved through the admin (held on the product itself) win over the
+ * bundled ingest file, because those are live and the JSON needs a rebuild.
+ * The JSON stays as a fallback so anything already processed keeps working.
+ */
+export const photosFor = (sku: string, own?: string[]): string[] =>
+  own && own.length > 0 ? own : (PHOTOS[sku] ?? []);
+
+export const hasPhoto = (sku: string, own?: string[]) => photosFor(sku, own).length > 0;
 
 /**
  * A product tile. Uses a real photograph the moment one exists at
@@ -25,6 +34,7 @@ export function ProductImage({
   className = "",
   compact = false,
   priority = false,
+  productImages,
 }: {
   sku: string;
   category: string;
@@ -33,14 +43,20 @@ export function ProductImage({
   className?: string;
   compact?: boolean;
   priority?: boolean;
+  /** Live image URLs from the product record; beats the bundled file. */
+  productImages?: string[];
 }) {
-  const photo = PHOTOS[sku]?.[0];
+  const own = productImages ?? [];
+  const photo = own[0] ?? PHOTOS[sku]?.[0];
+  // A live URL is absolute and already sized; a bundled one is a local slug
+  // that still needs its path and extension.
+  const isRemote = photo?.startsWith("http");
 
   if (photo) {
     return (
       <div className={`relative overflow-hidden bg-white ${className}`}>
         <Image
-          src={`/products/${compact ? photo + "-sm" : photo}.webp`}
+          src={isRemote ? photo : `/products/${compact ? photo + "-sm" : photo}.webp`}
           alt={title}
           fill
           sizes={compact ? "112px" : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"}

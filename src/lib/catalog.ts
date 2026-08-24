@@ -37,6 +37,21 @@ export type Product = {
   wholesale: boolean;
   condition: "new" | "used" | "refurbished";
   archived?: boolean;
+
+  /**
+   * What we pay our supplier, per unit.
+   *
+   * Null means "not recorded" and reports say so rather than guessing. An
+   * invented cost produces a confident profit figure that is simply wrong,
+   * which is worse than an obvious gap.
+   */
+  costPrice?: number | null;
+
+  /**
+   * Photo URLs, best first. Empty until real photography exists, at which
+   * point the storefront stops drawing an illustration and shows the product.
+   */
+  images?: string[];
 };
 
 export type Availability = "in-stock" | "low-stock" | "out-of-stock";
@@ -48,7 +63,7 @@ export function availability(p: Product): Availability {
   return "in-stock";
 }
 
-export type CategoryId = "printing-supplies" | "jewelry" | "eyewear";
+export type CategoryId = "printing-supplies" | "jewelry" | "eyewear" | "mens-tshirts";
 
 import { getDb } from "@/lib/db";
 
@@ -92,6 +107,9 @@ function fromRow(r: Row): Product {
     wholesale: Boolean(Number(r.wholesale ?? 0)),
     condition: (String(r.condition ?? "new") as Product["condition"]),
     archived: Boolean(Number(r.archived ?? 0)),
+    costPrice:
+      r.cost_price === null || r.cost_price === undefined ? null : Number(r.cost_price),
+    images: j<string[]>(r.images, []),
   };
 }
 
@@ -193,6 +211,18 @@ export const categories = [
     accent: "var(--color-duv-amber)",
   },
   {
+    id: "mens-tshirts" as const,
+    name: "Men's T-Shirts",
+    short: "T-Shirts",
+    blurb: "Blank and printed tees — the canvas for everything else we sell.",
+    long:
+      "Cotton tees ready to press, and finished designs pulled from our own artwork. The blanks " +
+      "are chosen for how they take a transfer: tight weave, no surface treatment, and a weight " +
+      "that survives a hot press without going thin at the shoulders.",
+    tint: "var(--color-tint-apparel)",
+    accent: "var(--color-duv-violet)",
+  },
+  {
     id: "eyewear" as const,
     name: "Eyewear",
     short: "Eyewear",
@@ -221,3 +251,19 @@ export const subcategoryLabels: Record<string, string> = {
 };
 
 export const getCategory = (id: string) => categories.find((c) => c.id === id);
+
+/**
+ * Categories worth showing a shopper.
+ *
+ * A category with nothing in it is an empty shelf: the visitor clicks, finds
+ * nothing, and learns the shop is unfinished. So a category earns its place in
+ * the navigation by having at least one live product, and appears the moment
+ * the first one is added — no config to remember, no second switch to flip.
+ *
+ * The category PAGE still resolves for an empty category; only the links to it
+ * disappear. That keeps any URL already shared or indexed working.
+ */
+export async function visibleCategories() {
+  const products = await getProducts();
+  return categories.filter((c) => products.some((p) => p.category === c.id));
+}

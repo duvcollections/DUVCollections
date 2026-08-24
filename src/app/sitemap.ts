@@ -1,9 +1,11 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/lib/site";
-import { getProducts, categories } from "@/lib/catalog";
+import { getProducts, visibleCategories } from "@/lib/catalog";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getProducts();
+  // An empty category is not worth a sitemap entry.
+  const cats = await visibleCategories();
   const now = new Date();
   const page = (path: string, priority: number, changeFrequency: "daily" | "weekly" | "monthly" | "yearly") => ({
     url: `${site.url}${path}`,
@@ -15,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     page("", 1, "daily"),
     page("/shop", 0.9, "daily"),
-    ...categories.map((c) => page(`/shop/${c.id}`, 0.85, "daily")),
+    ...cats.map((c) => page(`/shop/${c.id}`, 0.85, "daily")),
     ...products.map((p) => page(`/product/${p.slug}`, 0.7, "weekly")),
     page("/custom-printing", 0.8, "monthly"),
     page("/about", 0.6, "monthly"),

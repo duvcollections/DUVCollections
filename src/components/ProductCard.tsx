@@ -8,14 +8,14 @@ import { subcategoryLabels, availability } from "@/lib/catalog";
 function Stock({ p }: { p: Product }) {
   const a = availability(p);
   if (a === "out-of-stock")
-    return <span className="text-[12px] font-semibold text-duv-faint">Out of stock</span>;
+    return <span className="text-[12px] font-semibold text-duv-faint-ink">Out of stock</span>;
   if (a === "low-stock")
     return (
       <span className="text-[12px] font-semibold text-duv-coral">
         Only {p.stock} left
       </span>
     );
-  return <span className="text-[12px] font-semibold text-duv-green">In stock</span>;
+  return <span className="text-[12px] font-semibold text-duv-green-ink">In stock</span>;
 }
 
 export function ProductCard({ p }: { p: Product }) {
@@ -26,12 +26,13 @@ export function ProductCard({ p }: { p: Product }) {
           sku={p.sku}
           category={p.category}
           art={p.art}
+          productImages={p.images}
           title={p.title}
           className="aspect-square [container-type:inline-size]"
         />
       </Link>
       <div className="flex flex-1 flex-col p-4">
-        <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.13em] text-duv-faint">
+        <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.13em] text-duv-faint-ink">
           <span>{subcategoryLabels[p.subcategory] ?? p.subcategory}</span>
           {p.wholesale && (
             <span className="rounded-full bg-duv-violet/12 px-2 py-0.5 tracking-[0.1em] text-duv-violet">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Mark";
 import { site } from "@/lib/site";
-import { categories } from "@/lib/catalog";
+import { visibleCategories } from "@/lib/catalog";
 
 const POLICIES = [
   { href: "/policies/shipping", label: "Shipping Policy" },
@@ -24,7 +24,7 @@ function currentYear(): number {
   return new Date().getFullYear();
 }
 
-export function Footer() {
+export async function Footer() {
   return (
     <footer className="mt-24 bg-duv-plum text-white">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -46,7 +46,7 @@ export function Footer() {
               Shop
             </h2>
             <ul className="mt-4 flex flex-col gap-2.5 text-[14px]">
-              {categories.map((c) => (
+              {(await visibleCategories()).map((c) => (
                 <li key={c.id}>
                   <Link className="text-white/75 transition-colors hover:text-white" href={`/shop/${c.id}`}>
                     {c.name}

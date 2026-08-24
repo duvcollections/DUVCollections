@@ -42,15 +42,22 @@ export type FeedItem = { product: Product; imageUrl: string };
  */
 export function productsForFeed(
   products: Product[],
-  photosFor: (sku: string) => string[],
+  photosFor: (sku: string, own?: string[]) => string[],
 ): FeedItem[] {
   const items: FeedItem[] = [];
   for (const p of products) {
     if (p.archived) continue;
     if (availability(p) === "out-of-stock") continue;
-    const photos = photosFor(p.sku);
+    // Images saved in the admin are absolute URLs already; the bundled ingest
+    // file stores a slug that still needs a path. Emitting the slug form for a
+    // remote image would give Google a 404 and get the item rejected.
+    const photos = photosFor(p.sku, p.images);
     if (photos.length === 0) continue;
-    items.push({ product: p, imageUrl: `${site.url}/products/${photos[0]}.webp` });
+    const first = photos[0];
+    const imageUrl = first.startsWith("http")
+      ? first
+      : `${site.url}/products/${first}.webp`;
+    items.push({ product: p, imageUrl });
   }
   return items;
 }

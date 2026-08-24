@@ -2,7 +2,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { CartProvider } from "@/lib/cart";
-import { getProducts } from "@/lib/catalog";
+import { getProducts, visibleCategories } from "@/lib/catalog";
 import { site } from "@/lib/site";
 import { Analytics } from "@/components/Analytics";
 
@@ -28,6 +28,14 @@ const orgLd = {
 
 export default async function ShopLayout({ children }: { children: React.ReactNode }) {
   // Only the fields the cart needs — the full catalogue never ships to the browser.
+  // Only categories that actually contain something get a nav link — see
+  // visibleCategories. A shopper should never click through to an empty shelf.
+  const nav = [
+    ...(await visibleCategories()).map((c) => ({ href: `/shop/${c.id}`, label: c.name })),
+    { href: "/custom-printing", label: "Custom Printing" },
+    { href: "/about", label: "About" },
+  ];
+
   const catalog = (await getProducts()).map((p) => ({
     sku: p.sku,
     slug: p.slug,
@@ -50,7 +58,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
         Skip to content
       </a>
       <CartProvider catalog={catalog}>
-        <Header />
+        <Header nav={nav} />
         <main id="main">{children}</main>
         <Footer />
         <ChatWidget />

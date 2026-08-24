@@ -3,19 +3,23 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "@/components/Mark";
-import { categories } from "@/lib/catalog";
 import { useCart } from "@/lib/cart";
 import { site, money } from "@/lib/site";
 
-const NAV = [
-  ...categories.map((c) => ({ href: `/shop/${c.id}`, label: c.name })),
-  { href: "/custom-printing", label: "Custom Printing" },
-  { href: "/about", label: "About" },
-];
+export type NavLink = { href: string; label: string };
 
-export function Header() {
+/**
+ * Nav links arrive from the server layout rather than being derived here.
+ *
+ * Which categories are worth linking to depends on whether they contain any
+ * products, and that is a database question — one a client component cannot
+ * ask. Passing the finished list down keeps the "hide an empty category" rule
+ * in one place instead of duplicating it per component.
+ */
+export function Header({ nav }: { nav: NavLink[] }) {
   const [open, setOpen] = useState(false);
   const { count, ready } = useCart();
+  const NAV = nav;
 
   return (
     <>
@@ -26,9 +30,9 @@ export function Header() {
             <span>
               Free US shipping over {money(site.policy.freeShippingThreshold)}
             </span>
-            <span aria-hidden="true" className="text-duv-faint">•</span>
+            <span aria-hidden="true" className="text-duv-faint-ink">•</span>
             <span>Flat {money(site.policy.shippingFlatRate)} otherwise</span>
-            <span aria-hidden="true" className="text-duv-faint">•</span>
+            <span aria-hidden="true" className="text-duv-faint-ink">•</span>
             <span>{site.policy.returnWindowDays}-day returns</span>
           </p>
           {/* Where people go when they are anxious about a parcel. Burying it in
@@ -72,7 +76,7 @@ export function Header() {
               name="q"
               type="search"
               placeholder="Search DTF film, chains, SKU…"
-              className="w-full rounded-full border border-duv-line bg-white px-4 py-2.5 text-[14px] text-duv-plum placeholder:text-duv-faint focus:border-duv-violet focus:outline-none"
+              className="w-full rounded-full border border-duv-line bg-white px-4 py-2.5 text-[14px] text-duv-plum placeholder:text-duv-faint-ink focus:border-duv-violet focus:outline-none"
             />
           </form>
 
@@ -82,7 +86,7 @@ export function Header() {
           >
             Cart
             {ready && count > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-duv-pink px-1 text-[11px] font-bold text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-duv-pink-deep px-1 text-[11px] font-bold text-white">
                 {count}
               </span>
             )}

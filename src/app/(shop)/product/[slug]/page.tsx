@@ -110,18 +110,19 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             category={p.category}
             art={p.art}
             title={p.title}
+            productImages={p.images}
             priority
             className="aspect-square rounded-3xl border border-duv-line"
           />
-          {!hasPhoto(p.sku) && (
-            <p className="mt-3 text-center text-[12.5px] text-duv-faint">
+          {!hasPhoto(p.sku, p.images) && (
+            <p className="mt-3 text-center text-[12.5px] text-duv-faint-ink">
               Illustration — photography in progress. Specifications below are accurate.
             </p>
           )}
         </div>
 
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint">
+          <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint-ink">
             {subcategoryLabels[p.subcategory] ?? p.subcategory} · SKU {p.sku}
           </p>
           <h1 className="mt-2.5 text-balance font-display text-[clamp(1.75rem,3.5vw,2.5rem)] font-extrabold leading-[1.08] tracking-[-0.03em]">
@@ -146,7 +147,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
                 Only {p.stock} left
               </span>
             ) : (
-              <span className="rounded-full bg-duv-mint/25 px-3 py-1 text-[12.5px] font-bold text-duv-green">
+              <span className="rounded-full bg-duv-mint/25 px-3 py-1 text-[12.5px] font-bold text-duv-green-ink">
                 In stock
               </span>
             )}
@@ -158,7 +159,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             <ul className="mt-5 space-y-2">
               {p.highlights.map((h) => (
                 <li key={h} className="flex gap-2.5 text-[14.5px] leading-relaxed text-duv-muted">
-                  <span aria-hidden="true" className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-duv-pink" />
+                  <span aria-hidden="true" className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-duv-pink-deep" />
                   <span>{h}</span>
                 </li>
               ))}
@@ -175,7 +176,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             <AddToCart sku={p.sku} />
             <Link
               href="/cart"
-              className="text-[14px] font-bold text-duv-violet underline decoration-2 underline-offset-4 hover:text-duv-pink"
+              className="text-[14px] font-bold text-duv-violet underline decoration-2 underline-offset-4 hover:text-duv-pink-ink"
             >
               View cart
             </Link>
@@ -187,7 +188,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
               <dt className="text-[13.5px] font-semibold text-duv-plum">Shipping</dt>
               <dd className="text-right text-[13.5px] text-duv-muted">
                 {freeShip ? (
-                  <span className="font-bold text-duv-green">Free US shipping</span>
+                  <span className="font-bold text-duv-green-ink">Free US shipping</span>
                 ) : (
                   <>
                     {money(site.policy.shippingFlatRate)} flat · free over{" "}
@@ -215,7 +216,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
           {Object.keys(p.specs).length > 0 && (
             <section className="mt-8">
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint-ink">
                 Specifications
               </h2>
               <dl className="mt-3 grid gap-x-8 gap-y-2.5 sm:grid-cols-2">

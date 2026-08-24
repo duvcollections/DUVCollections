@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, AccessError } from "@/lib/access";
 import { requestRedeploy } from "@/lib/redeploy";
 import { upsertProduct, setArchived, seedCatalogue, slugify, NoDatabase } from "@/lib/products-repo";
+import { checkImageUrl, MAX_IMAGES } from "@/lib/product-images";
 import { allProducts, type Product, type CategoryId } from "@/lib/catalog";
 
 const CATEGORIES = ["printing-supplies", "jewelry", "eyewear"];
@@ -88,6 +89,34 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // Cost price: blank means "not recorded", which reports handle honestly.
+      const costRaw = String(f.costPrice ?? "").trim();
+      const costPrice = costRaw === "" ? null : Number(costRaw);
+      if (costPrice !== null && (!Number.isFinite(costPrice) || costPrice < 0 || costPrice > 100000)) {
+        return NextResponse.json(
+          { error: "Cost price must be a number between 0 and 100000, or blank." },
+          { status: 400 },
+        );
+      }
+
+      // Images are re-validated here even though the browser checked them.
+      // The browser check is a courtesy; this one is the boundary.
+      const rawImages = Array.isArray((body.product as Record<string, unknown>)?.images)
+        ? ((body.product as Record<string, unknown>).images as unknown[])
+        : [];
+      const productImages: string[] = [];
+      for (const candidate of rawImages.slice(0, MAX_IMAGES)) {
+        if (typeof candidate !== "string") continue;
+        const checked = checkImageUrl(candidate);
+        if (!checked.ok) {
+          return NextResponse.json(
+            { error: `Image rejected: ${checked.error}` },
+            { status: 400 },
+          );
+        }
+        productImages.push(checked.url);
+      }
+
       const stockRaw = String(f.stock ?? "").trim();
       const stock = stockRaw === "" ? null : Number(stockRaw);
       if (stock !== null && (!Number.isInteger(stock) || stock < 0)) {
@@ -136,6 +165,8 @@ export async function POST(req: NextRequest) {
         wholesale: Boolean(f.wholesale),
         condition: "new",
         archived: false,
+        costPrice,
+        images: productImages,
       };
 
       await upsertProduct(product, actor);

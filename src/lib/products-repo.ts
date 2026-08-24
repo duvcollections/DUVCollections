@@ -42,6 +42,8 @@ const toRow = (p: Product) => ({
   wholesale: p.wholesale ? 1 : 0,
   condition: p.condition ?? "new",
   archived: p.archived ? 1 : 0,
+  cost_price: p.costPrice ?? null,
+  images: JSON.stringify(p.images ?? []),
 });
 
 const COLS = Object.keys(toRow({} as Product)) as string[];

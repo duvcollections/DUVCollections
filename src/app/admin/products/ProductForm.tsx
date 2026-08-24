@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ImageEditor } from "./ImageEditor";
 import type { Product } from "@/lib/catalog";
 
 const CATEGORIES = [
@@ -21,9 +22,9 @@ const ART = ["film-roll","film-sheet-gold","film-sheet-silver","powder","ink","p
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[12px] font-bold uppercase tracking-wide text-duv-faint">{label}</span>
+      <span className="mb-1.5 block text-[12px] font-bold uppercase tracking-wide text-duv-faint-ink">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-[12px] text-duv-faint">{hint}</span>}
+      {hint && <span className="mt-1 block text-[12px] text-duv-faint-ink">{hint}</span>}
     </label>
   );
 }
@@ -50,7 +51,15 @@ export function ProductForm({ product }: { product?: Product }) {
     upc: product?.upc ?? "",
     shipWeightOz: String(product?.shipWeightOz ?? 4),
     wholesale: product?.wholesale ?? false,
+    costPrice:
+      product?.costPrice === null || product?.costPrice === undefined
+        ? ""
+        : String(product.costPrice),
   });
+
+  // Held apart from the text fields: it is a list, not a string, and merging
+  // it into `f` would mean serialising and reparsing on every keystroke.
+  const [productImages, setProductImages] = useState<string[]>(product?.images ?? []);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -64,7 +73,7 @@ export function ProductForm({ product }: { product?: Product }) {
     const res = await fetch("/api/admin/product", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "save", isNew, product: f }),
+      body: JSON.stringify({ action: "save", isNew, product: { ...f, images: productImages } }),
     });
     const d = (await res.json()) as {
       ok?: boolean; error?: string; sku?: string;
@@ -170,19 +179,27 @@ export function ProductForm({ product }: { product?: Product }) {
           <Field label="UPC" hint="12–13 digits, or blank">
             <input value={f.upc} onChange={set("upc")} inputMode="numeric" className={`${input} font-mono`} />
           </Field>
+          <Field
+            label="Cost price (USD)"
+            hint="What you pay your supplier. Blank = not recorded; profit reports will say so rather than guess."
+          >
+            <input value={f.costPrice} onChange={set("costPrice")} inputMode="decimal" placeholder="e.g. 4.20" className={input} />
+          </Field>
         </div>
       </div>
 
+      <ImageEditor value={productImages} onChange={setProductImages} />
+
       {msg && (
         <p role="status" className={`rounded-xl px-4 py-3 text-[13.5px] font-semibold ${
-          msg.ok ? "bg-duv-mint/20 text-duv-green" : "bg-duv-red/10 text-duv-red"}`}>
+          msg.ok ? "bg-duv-mint/20 text-duv-green-ink" : "bg-duv-red/10 text-duv-red"}`}>
           {msg.text}
         </p>
       )}
 
       <div className="flex flex-wrap items-center gap-4">
         <button type="submit" disabled={busy}
-          className="rounded-full bg-duv-pink px-8 py-3.5 text-[14.5px] font-bold text-white hover:bg-duv-coral disabled:bg-duv-faint">
+          className="rounded-full bg-duv-pink-deep px-8 py-3.5 text-[14.5px] font-bold text-white hover:bg-duv-coral-deep disabled:bg-duv-faint">
           {busy ? "Saving…" : isNew ? "Create product" : "Save changes"}
         </button>
         {!isNew && (
@@ -193,7 +210,7 @@ export function ProductForm({ product }: { product?: Product }) {
         )}
       </div>
       {!isNew && (
-        <p className="text-[12.5px] leading-relaxed text-duv-faint">
+        <p className="text-[12.5px] leading-relaxed text-duv-faint-ink">
           Products are archived, never deleted — deleting would break past orders and any link
           Google has already indexed.
         </p>
