@@ -64,6 +64,9 @@ export async function POST(req: NextRequest) {
         price: m.listing.price,
         images: m.listing.images.length,
         firstImage: m.listing.images[0] ?? null,
+        // The full list, because the apply step writes exactly what was
+        // reviewed rather than re-deriving it from a second eBay call.
+        imageUrls: m.listing.images,
         quantity: m.listing.availableQuantity,
         url: m.listing.itemWebUrl,
       })),

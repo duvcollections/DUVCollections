@@ -132,6 +132,40 @@ export async function setArchived(sku: string, archived: boolean, actor: string)
   await audit(sku, archived ? "archived" : "restored", { archived }, actor);
 }
 
+/**
+ * Replace a product's photographs, touching nothing else.
+ *
+ * Deliberately NOT `upsertProduct`: that rewrites every column from the object
+ * it is handed, so importing photos through it would also overwrite price,
+ * stock and description with whatever the caller happened to have loaded. An
+ * import that quietly reverts a price edit is much worse than one that fails.
+ *
+ * The previous value goes into the audit log, so a bad import can be read back
+ * and undone rather than being gone.
+ */
+export async function setProductImages(
+  sku: string,
+  images: string[],
+  actor: string,
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new NoDatabase();
+
+  const before = await db
+    .prepare("SELECT images FROM products WHERE sku = ?")
+    .bind(sku)
+    .first<{ images: string }>();
+
+  if (!before) throw new Error(`${sku} is not in the catalogue.`);
+
+  await db
+    .prepare("UPDATE products SET images = ?, updated_at = datetime('now') WHERE sku = ?")
+    .bind(JSON.stringify(images), sku)
+    .run();
+
+  await audit(sku, "updated", { images: [before.images, JSON.stringify(images)] }, actor);
+}
+
 export async function setStock(sku: string, stock: number | null, actor: string): Promise<void> {
   const db = await getDb();
   if (!db) throw new NoDatabase();
