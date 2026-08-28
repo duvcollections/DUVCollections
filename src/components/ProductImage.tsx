@@ -18,6 +18,22 @@ export const photosFor = (sku: string, own?: string[]): string[] =>
 export const hasPhoto = (sku: string, own?: string[]) => photosFor(sku, own).length > 0;
 
 /**
+ * Photo URLs ready to hand to `next/image`.
+ *
+ * `photosFor` returns two different kinds of string: an absolute URL saved
+ * through the admin, or a bare slug from the bundled ingest file that still
+ * needs its directory and extension. Callers that render several photos at
+ * once must not have to know the difference — getting it wrong yields a broken
+ * image for exactly one of the two sources, which is the kind of bug that
+ * survives review because the other source still looks fine.
+ */
+export const photoUrls = (sku: string, own?: string[]): string[] =>
+  photosFor(sku, own).map((photo) =>
+    photo.startsWith("http") ? photo : `/products/${photo}.webp`,
+  );
+
+
+/**
  * A product tile. Uses a real photograph the moment one exists at
  * public/products/<sku>.webp (run `npm run images:ingest`), and falls back to a
  * labelled illustration until then.

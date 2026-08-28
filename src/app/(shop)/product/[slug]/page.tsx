@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProductImage, hasPhoto } from "@/components/ProductImage";
+import { ProductImage, hasPhoto, photoUrls } from "@/components/ProductImage";
+import { ProductGallery } from "@/components/ProductGallery";
 import { AddToCart } from "@/components/AddToCart";
 import { ProductGrid } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -51,6 +52,13 @@ export async function generateMetadata({
       title: p.seoTitle,
       description: p.metaDescription,
       url: `${site.url}/product/${p.slug}`,
+      // The photo is what a shared link actually shows in a feed or a chat.
+      // Only absolute URLs work here — a relative path renders as no preview
+      // at all rather than as a broken image, so the omission is easy to miss.
+      ...(() => {
+        const shots = photoUrls(p.sku, p.images).filter((u) => u.startsWith("http"));
+        return shots.length ? { images: shots.slice(0, 4) } : {};
+      })(),
     },
   };
 }
@@ -61,6 +69,8 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   if (!p) notFound();
 
   const cat = getCategory(p.category)!;
+  // Absolute URLs, whichever source they came from.
+  const photos = photoUrls(p.sku, p.images);
   const freeShip = p.price >= site.policy.freeShippingThreshold;
   const avail = availability(p);
 
@@ -72,6 +82,9 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
     name: p.title,
     sku: p.sku,
     description: p.description,
+    // Google requires an absolute URL here, and rejects a Product offer that
+    // has no image at all. Listing every photo lets it pick the best crop.
+    ...(photos.length ? { image: photos.filter((u) => u.startsWith("http")) } : {}),
     brand: { "@type": "Brand", name: site.name },
     mpn: p.mpn,
     ...(p.upc ? { gtin12: p.upc } : {}),
@@ -125,15 +138,21 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
         <div>
-          <ProductImage
-            sku={p.sku}
-            category={p.category}
-            art={p.art}
-            title={p.title}
-            productImages={p.images}
-            priority
-            className="aspect-square rounded-3xl border border-duv-line"
-          />
+          {/* Real photographs get the gallery; everything else keeps the
+              illustrated placeholder, which is still the honest default. */}
+          {photos.length > 0 ? (
+            <ProductGallery images={photos} title={p.title} />
+          ) : (
+            <ProductImage
+              sku={p.sku}
+              category={p.category}
+              art={p.art}
+              title={p.title}
+              productImages={p.images}
+              priority
+              className="aspect-square rounded-3xl border border-duv-line"
+            />
+          )}
           {!hasPhoto(p.sku, p.images) && (
             <p className="mt-3 text-center text-[12.5px] text-duv-faint-ink">
               Illustration — photography in progress. Specifications below are accurate.
