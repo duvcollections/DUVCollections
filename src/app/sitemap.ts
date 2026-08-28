@@ -3,12 +3,13 @@ import { site } from "@/lib/site";
 import { getProducts, visibleCategories } from "@/lib/catalog";
 
 /**
- * Re-read the catalogue from D1 at most this often (seconds).
+ * Built per request so it reads D1 rather than the seed JSON.
  *
- * A sitemap frozen at build time keeps advertising products that changed or
- * went away, which is what earns crawl errors in Search Console.
+ * A sitemap generated at build time lists whatever the seed contained, which
+ * drifts from the real catalogue the moment a product is added or archived —
+ * and a sitemap advertising URLs that 404 is what earns Search Console errors.
  */
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getProducts();

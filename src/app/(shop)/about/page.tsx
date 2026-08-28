@@ -12,19 +12,25 @@ export const metadata: Metadata = {
 
 
 /**
- * Re-read the catalogue from D1 at most this often (seconds).
+ * Rendered per request, not prerendered at build time.
  *
- * Without this the page is prerendered at build time and served frozen: an
- * admin edit — new photographs, a price change, a restock — would be correct in
- * the database and invisible on the site until the next deploy. That is exactly
- * the bug where five saved image URLs never appeared on the product page.
+ * D1 is only reachable through the Cloudflare request context. At build time
+ * `getCloudflareContext()` throws, `getDb()` returns null, and `allProducts()`
+ * quietly falls back to the seed JSON — which has no photographs, no live
+ * stock and no cost prices. A prerendered page therefore bakes in the seed and
+ * shows it forever, which is exactly the bug where five saved image URLs sat
+ * correctly in D1 and never appeared on the product page.
  *
- * Five minutes rather than zero because the shop is on Cloudflare's free tier
- * (100k Worker requests/day) and `force-dynamic` would route every visitor,
- * crawler and bot hit through the Worker. This keeps the page static for
- * everyone in a five-minute window and refreshes it in the background after.
+ * `revalidate` alone could not fix that: the first render still happened at
+ * build time against the seed, and re-rendering later still produced a page
+ * built from whatever the build saw. The data has to be read where the
+ * binding exists, so the render has to happen there too.
+ *
+ * The cost is one Worker invocation per uncached page view. Cloudflare's free
+ * tier allows 100k/day and the CDN still absorbs repeat hits within the
+ * cache window below, so this stays comfortably inside budget.
  */
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default async function About() {
   const products = await getProducts();
