@@ -2,8 +2,17 @@ import type { MetadataRoute } from "next";
 import { site } from "@/lib/site";
 import { getProducts, visibleCategories } from "@/lib/catalog";
 
+/**
+ * Re-read the catalogue from D1 at most this often (seconds).
+ *
+ * A sitemap frozen at build time keeps advertising products that changed or
+ * went away, which is what earns crawl errors in Search Console.
+ */
+export const revalidate = 300;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getProducts();
+
   // An empty category is not worth a sitemap entry.
   const cats = await visibleCategories();
   const now = new Date();

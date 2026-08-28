@@ -61,7 +61,10 @@ export function ProductForm({ product }: { product?: Product }) {
   // it into `f` would mean serialising and reparsing on every keystroke.
   const [productImages, setProductImages] = useState<string[]>(product?.images ?? []);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  // Three states, not two. "Saved to the database but not yet visible on the
+  // shop" is neither a success nor a failure, and painting it green is how a
+  // real warning gets read as a tick and ignored.
+  const [msg, setMsg] = useState<{ tone: "ok" | "warn" | "error"; text: string } | null>(null);
 
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setF({ ...f, [k]: e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value });
@@ -80,18 +83,25 @@ export function ProductForm({ product }: { product?: Product }) {
       rebuild?: { queued: boolean; reason?: string };
     };
     if (!res.ok || !d.ok) {
-      setMsg({ ok: false, text: d.error ?? `Failed (${res.status}).` });
+      setMsg({ tone: "error", text: d.error ?? `Failed (${res.status}).` });
       setBusy(false);
       return;
     }
-    setMsg({
-      ok: true,
-      text: d.rebuild?.queued
-        ? "Saved. The shop is rebuilding — the change is live in about two minutes."
-        : `Saved to the catalogue. The shop still shows the old version${
-            d.rebuild?.reason ? ` (${d.rebuild.reason})` : ""
-          } — push a commit to refresh it.`,
-    });
+    setMsg(
+      d.rebuild?.queued
+        ? {
+            tone: "ok",
+            text: "Saved. The shop is rebuilding — the change is live in about two minutes.",
+          }
+        : {
+            tone: "warn",
+            text:
+              "Saved to the catalogue, but the shop was NOT rebuilt" +
+              (d.rebuild?.reason ? ` — ${d.rebuild.reason}` : "") +
+              ". Shop pages refresh on their own within 5 minutes; " +
+              "set CF_DEPLOY_HOOK_URL to make edits appear immediately.",
+          },
+    );
     setBusy(false);
     router.refresh();
     if (isNew) router.push(`/admin/products/${d.sku}`);
@@ -105,8 +115,8 @@ export function ProductForm({ product }: { product?: Product }) {
       body: JSON.stringify({ action: "archive", sku: f.sku, archived }),
     });
     const d = (await res.json()) as { ok?: boolean; error?: string };
-    setMsg(d.ok ? { ok: true, text: archived ? "Archived — hidden from the shop." : "Restored." }
-                : { ok: false, text: d.error ?? "Failed." });
+    setMsg(d.ok ? { tone: "ok", text: archived ? "Archived — hidden from the shop." : "Restored." }
+                : { tone: "error", text: d.error ?? "Failed." });
     setBusy(false);
     router.refresh();
   }
@@ -191,8 +201,19 @@ export function ProductForm({ product }: { product?: Product }) {
       <ImageEditor value={productImages} onChange={setProductImages} />
 
       {msg && (
-        <p role="status" className={`rounded-xl px-4 py-3 text-[13.5px] font-semibold ${
-          msg.ok ? "bg-duv-mint/20 text-duv-green-ink" : "bg-duv-red/10 text-duv-red"}`}>
+        <p
+          role="status"
+          className={`rounded-xl px-4 py-3 text-[13.5px] font-semibold ${
+            msg.tone === "ok"
+              ? "bg-duv-mint/20 text-duv-green-ink"
+              : msg.tone === "warn"
+                ? "bg-duv-amber/25 text-duv-plum"
+                : "bg-duv-red/10 text-duv-red"
+          }`}
+        >
+          {/* The word carries the state as well as the colour, so it still reads
+              correctly to a colourblind admin or in forced-colours mode. */}
+          {msg.tone === "warn" ? "Heads up: " : ""}
           {msg.text}
         </p>
       )}

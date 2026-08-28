@@ -10,6 +10,22 @@ export const metadata: Metadata = {
     "DUV Prints and Gifts USA LLC — a family-run US supplier of DTF printing materials, custom printing, gold-plated jewelry and gifts.",
 };
 
+
+/**
+ * Re-read the catalogue from D1 at most this often (seconds).
+ *
+ * Without this the page is prerendered at build time and served frozen: an
+ * admin edit — new photographs, a price change, a restock — would be correct in
+ * the database and invisible on the site until the next deploy. That is exactly
+ * the bug where five saved image URLs never appeared on the product page.
+ *
+ * Five minutes rather than zero because the shop is on Cloudflare's free tier
+ * (100k Worker requests/day) and `force-dynamic` would route every visitor,
+ * crawler and bot hit through the Worker. This keeps the page static for
+ * everyone in a five-minute window and refreshes it in the background after.
+ */
+export const revalidate = 300;
+
 export default async function About() {
   const products = await getProducts();
   return (
@@ -77,7 +93,7 @@ export default async function About() {
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="rounded-3xl border border-duv-line bg-white p-7">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-duv-faint-ink">
               At a glance
             </h2>
             <dl className="mt-5 space-y-4">
@@ -90,7 +106,7 @@ export default async function About() {
                 ["Support hours", site.contact.hours],
               ].map(([k, v]) => (
                 <div key={k}>
-                  <dt className="text-[12px] font-bold uppercase tracking-wide text-duv-faint">
+                  <dt className="text-[12px] font-bold uppercase tracking-wide text-duv-faint-ink">
                     {k}
                   </dt>
                   <dd className="mt-0.5 text-[14.5px] font-semibold leading-snug">{v}</dd>

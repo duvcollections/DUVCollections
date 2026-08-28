@@ -7,6 +7,22 @@ import { CategoryArt } from "@/components/BrandArt";
 import { visibleCategories, byCategory, getProducts, priceRange } from "@/lib/catalog";
 import { site, money } from "@/lib/site";
 
+
+/**
+ * Re-read the catalogue from D1 at most this often (seconds).
+ *
+ * Without this the page is prerendered at build time and served frozen: an
+ * admin edit — new photographs, a price change, a restock — would be correct in
+ * the database and invisible on the site until the next deploy. That is exactly
+ * the bug where five saved image URLs never appeared on the product page.
+ *
+ * Five minutes rather than zero because the shop is on Cloudflare's free tier
+ * (100k Worker requests/day) and `force-dynamic` would route every visitor,
+ * crawler and bot hit through the Worker. This keeps the page static for
+ * everyone in a five-minute window and refreshes it in the background after.
+ */
+export const revalidate = 300;
+
 const featured = [
   "DTF-ROLL-30-100",
   "HTP-DARK-100",
