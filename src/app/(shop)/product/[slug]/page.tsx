@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductImage, hasPhoto, photoUrls } from "@/components/ProductImage";
-import { ProductGallery } from "@/components/ProductGallery";
+import { PhotoViewer } from "@/components/PhotoViewer";
 import { AddToCart } from "@/components/AddToCart";
 import { ProductGrid } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -141,7 +141,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
           {/* Real photographs get the gallery; everything else keeps the
               illustrated placeholder, which is still the honest default. */}
           {photos.length > 0 ? (
-            <ProductGallery images={photos} title={p.title} />
+            <PhotoViewer images={photos} title={p.title} />
           ) : (
             <ProductImage
               sku={p.sku}
