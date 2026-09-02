@@ -44,26 +44,33 @@ export function ProductGallery({
   return (
     <div>
       <div className="relative aspect-square overflow-hidden rounded-3xl border border-duv-line bg-white">
-        {images.map((src, i) => (
-          <Image
-            key={src}
-            src={src}
-            alt={
-              images.length > 1
-                ? `${title} — photo ${i + 1} of ${images.length}`
-                : title
-            }
-            fill
-            sizes="(max-width: 1024px) 100vw, 600px"
-            className="object-contain transition-opacity duration-200"
-            style={{ opacity: i === current ? 1 : 0 }}
-            priority={i === 0}
-            loading={i === 0 ? undefined : "lazy"}
-            // Hide the inactive copies from assistive tech, so a screen reader
-            // does not read five alt texts for what looks like one image.
-            aria-hidden={i === current ? undefined : true}
-          />
-        ))}
+        {/*
+         * One image, swapped on click — NOT a stack of hidden copies.
+         *
+         * The first version of this mounted all of them and hid the inactive
+         * ones with `opacity: 0`, reasoning that the browser cache would make
+         * revisiting a photo instant. On the live site every image after the
+         * first rendered 0x0: a lazy image only fetches once it intersects the
+         * viewport, and an absolutely-positioned copy at zero opacity never
+         * does. The optimisation defeated the feature it was meant to speed up.
+         *
+         * Keying on `src` makes React swap the element on change, and the
+         * browser cache still serves a photo you have already viewed — so the
+         * intended benefit survives without the stack that broke it.
+         */}
+        <Image
+          key={images[current]}
+          src={images[current]}
+          alt={
+            images.length > 1
+              ? `${title} — photo ${current + 1} of ${images.length}`
+              : title
+          }
+          fill
+          sizes="(max-width: 1024px) 100vw, 600px"
+          className="object-contain"
+          priority
+        />
       </div>
 
       {images.length > 1 && (
@@ -81,13 +88,18 @@ export function ProductGallery({
                     : "border-duv-line hover:border-duv-faint"
                 }`}
               >
+                {/*
+                  * Deliberately NOT lazy. These are 64px and sit directly
+                  * under the main photo — they are on screen the moment the
+                  * page is, so deferring them bought nothing and, on the live
+                  * site, left every thumbnail blank.
+                  */}
                 <Image
                   src={src}
                   alt=""
                   fill
                   sizes="64px"
                   className="object-contain"
-                  loading="lazy"
                 />
               </button>
             </li>
