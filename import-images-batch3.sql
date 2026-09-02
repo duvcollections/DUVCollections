@@ -1,0 +1,7 @@
+UPDATE products SET images = '["https://i.ebayimg.com/images/g/yy8AAeSwK19ogDrh/s-l1600.webp", "https://i.ebayimg.com/images/g/uvgAAeSwmtJogDsg/s-l1600.webp", "https://i.ebayimg.com/images/g/q9YAAeSwzqlogDwS/s-l1600.webp"]' WHERE sku = 'BJ002';
+UPDATE products SET images = '["https://i.ebayimg.com/images/g/XwcAAOSw5pVoHkPy/s-l1600.webp", "https://i.ebayimg.com/images/g/AREAAOSw2kRoHkP3/s-l1600.webp"]' WHERE sku = 'CH002';
+UPDATE products SET images = '["https://i.ebayimg.com/images/g/JloAAeSwcXxogE~5/s-l1600.webp"]' WHERE sku = 'BJ004';
+UPDATE products SET images = '["https://i.ebayimg.com/images/g/q-gAAeSwFZFogEA~/s-l1600.webp"]' WHERE sku = 'BJ003';
+UPDATE products SET images = '["https://i.ebayimg.com/images/g/N4wAAeSwCvxonhwH/s-l1600.webp", "https://i.ebayimg.com/images/g/IAMAAeSwGHhonhwM/s-l1600.webp", "https://i.ebayimg.com/images/g/LRkAAeSwaBponhwK/s-l1600.webp", "https://i.ebayimg.com/images/g/SJoAAeSwPA5onhwJ/s-l1600.webp"]' WHERE sku = 'PEN007';
+UPDATE products SET images = '["https://i.ebayimg.com/images/g/1oQAAOSw2BdoHePp/s-l1600.webp", "https://i.ebayimg.com/images/g/wfsAAOSwlOdoHePq/s-l1600.webp", "https://i.ebayimg.com/images/g/99kAAOSwE6toHePq/s-l1600.webp"]' WHERE sku = 'BJ001';
+UPDATE products SET images = '["https://i.ebayimg.com/images/g/AOUAAeSwwElonhck/s-l1600.webp", "https://i.ebayimg.com/images/g/7kAAAeSwALxonhcm/s-l1600.webp", "https://i.ebayimg.com/images/g/U5cAAeSwFgZonhcm/s-l1600.webp", "https://i.ebayimg.com/images/g/~pMAAeSwzERonhcm/s-l1600.webp"]' WHERE sku = 'PEN001';
