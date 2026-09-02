@@ -71,10 +71,27 @@ export const site = {
     shipsTo: "United States",
   },
 
+  /**
+   * Figures quoted from the eBay store, verified 2026-09-02.
+   *
+   * These are social proof on the homepage, so they have to be defensible: a
+   * shop claiming a record it cannot show is worse than one claiming nothing.
+   * Read them off the store page before changing them, and round DOWN — eBay
+   * displays "1.9K items sold", which is at least 1,900 and possibly 1,999.
+   * "1,900+" is true either way; "1,999" would not be.
+   */
   external: {
     ebay: "https://www.ebay.com/str/karishmausa",
+    ebayStoreName: "DUV Prints and Gifts USA",
     ebayFeedback: "100% positive",
     ebayOrders: "1,900+",
+    ebayFollowers: "50",
+    /** The store's own three departments, in eBay's wording. */
+    ebayDepartments: [
+      "Printing and Graphic Art",
+      "Imitation Jewelry",
+      "Gift Articles",
+    ],
   },
 
   // Bumped whenever a policy page changes, so customers can see what they agreed to
