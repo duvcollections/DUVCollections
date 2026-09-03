@@ -5,7 +5,7 @@ import { TrustBar } from "@/components/TrustBar";
 import { ProductGrid } from "@/components/ProductCard";
 import { Reveal } from "@/components/Reveal";
 import { CategoryArt } from "@/components/BrandArt";
-import { PhotoDrift } from "@/components/PhotoDrift";
+import { HeroArt } from "@/components/HeroArt";
 import { CountUp } from "@/components/CountUp";
 import { photoUrls } from "@/components/ProductImage";
 import { visibleCategories, byCategory, getProducts, priceRange } from "@/lib/catalog";
@@ -70,22 +70,6 @@ export default async function Home() {
     }),
   );
 
-  // Hero collage: one photograph per category first, then fill from whatever
-  // else is photographed. Spreading across categories means the collage shows
-  // the breadth of the shop rather than five near-identical pendants.
-  const photographed = products.filter((x) => photoUrls(x.sku, x.images).length > 0);
-  const seen = new Set<string>();
-  const heroPicks = [
-    ...cats
-      .map((c) => photographed.find((x) => x.category === c.id))
-      .filter((x): x is NonNullable<typeof x> => Boolean(x)),
-    ...photographed,
-  ].filter((x) => (seen.has(x.sku) ? false : seen.add(x.sku)));
-
-  const heroPhotos = heroPicks.slice(0, 5).map((x) => ({
-    src: photoUrls(x.sku, x.images)[0],
-    alt: x.title,
-  }));
 
 
   return (
@@ -151,15 +135,21 @@ export default async function Home() {
           </Reveal>
         </div>
 
-          {/* Real photographs, not illustrations — the shop finally has them.
-              Hidden below `lg` because a five-tile collage on a phone pushes
-              the buy buttons off the first screen, which costs more than the
-              picture gains. */}
-          {heroPhotos.length >= 3 && (
-            <Reveal delay={200} y={20} className="hidden lg:block">
-              <PhotoDrift photos={heroPhotos} />
-            </Reveal>
-          )}
+          {/* Brand artwork, deliberately NOT product photography.
+              *
+              * The shop's photos are marketplace-quality — mixed resolutions
+              * and aspect ratios from 0.75 to 2.13 — and cropping them into a
+              * hero collage reads as a listing page. Generating photorealistic
+              * product images was rejected outright: a picture of an item that
+              * is not the item that ships is an "item not as described" claim
+              * waiting to happen. The real photographs appear in the grid
+              * below, where they are honest and clickable.
+              *
+              * Hidden below `lg` so the buy buttons stay on the first screen
+              * on a phone. */}
+          <Reveal delay={200} y={20} className="hidden lg:block">
+            <HeroArt className="aspect-[6/5] w-full" />
+          </Reveal>
         </div>
       </section>
 
