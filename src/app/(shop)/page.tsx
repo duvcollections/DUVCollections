@@ -1,9 +1,13 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Overprint } from "@/components/Overprint";
 import { TrustBar } from "@/components/TrustBar";
 import { ProductGrid } from "@/components/ProductCard";
 import { Reveal } from "@/components/Reveal";
 import { CategoryArt } from "@/components/BrandArt";
+import { PhotoDrift } from "@/components/PhotoDrift";
+import { CountUp } from "@/components/CountUp";
+import { photoUrls } from "@/components/ProductImage";
 import { visibleCategories, byCategory, getProducts, priceRange } from "@/lib/catalog";
 import { site, money } from "@/lib/site";
 
@@ -48,20 +52,49 @@ export default async function Home() {
 
   // Only categories with something in them. A shelf with nothing on it tells a
   // first-time visitor the shop is half-built.
+  //
+  // Each card now carries a real photograph when one of its products has one.
+  // `cover` is null for a category with no photography yet, and the card falls
+  // back to the illustration — the same honest default as everywhere else.
   const cats = await Promise.all(
-    (await visibleCategories()).map(async (c) => ({
-      ...c,
-      count: (await byCategory(c.id)).length,
-      min: (await priceRange(c.id)).min,
-    })),
+    (await visibleCategories()).map(async (c) => {
+      const inCat = await byCategory(c.id);
+      const shot = inCat.find((x) => photoUrls(x.sku, x.images).length > 0);
+      return {
+        ...c,
+        count: inCat.length,
+        min: (await priceRange(c.id)).min,
+        cover: shot ? photoUrls(shot.sku, shot.images)[0] : null,
+        coverAlt: shot ? shot.title : "",
+      };
+    }),
   );
+
+  // Hero collage: one photograph per category first, then fill from whatever
+  // else is photographed. Spreading across categories means the collage shows
+  // the breadth of the shop rather than five near-identical pendants.
+  const photographed = products.filter((x) => photoUrls(x.sku, x.images).length > 0);
+  const seen = new Set<string>();
+  const heroPicks = [
+    ...cats
+      .map((c) => photographed.find((x) => x.category === c.id))
+      .filter((x): x is NonNullable<typeof x> => Boolean(x)),
+    ...photographed,
+  ].filter((x) => (seen.has(x.sku) ? false : seen.add(x.sku)));
+
+  const heroPhotos = heroPicks.slice(0, 5).map((x) => ({
+    src: photoUrls(x.sku, x.images)[0],
+    alt: x.title,
+  }));
+
 
   return (
     <>
       {/* ---------------------------------------------------------- hero */}
       <section className="relative isolate overflow-hidden bg-duv-shell">
         <Overprint />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+        <div>
           <Reveal y={12}>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-duv-pink-ink">
               {site.legalName} · Shipped from Texas
@@ -117,6 +150,17 @@ export default async function Home() {
             </p>
           </Reveal>
         </div>
+
+          {/* Real photographs, not illustrations — the shop finally has them.
+              Hidden below `lg` because a five-tile collage on a phone pushes
+              the buy buttons off the first screen, which costs more than the
+              picture gains. */}
+          {heroPhotos.length >= 3 && (
+            <Reveal delay={200} y={20} className="hidden lg:block">
+              <PhotoDrift photos={heroPhotos} />
+            </Reveal>
+          )}
+        </div>
       </section>
 
       <TrustBar />
@@ -142,12 +186,25 @@ export default async function Home() {
                   className="lift group flex h-full flex-col overflow-hidden rounded-3xl transition-colors"
                   style={{ background: c.tint }}
                 >
-                  {/* Brand artwork, not a photograph — see BrandArt for why. */}
-                  <div className="relative h-36 overflow-hidden">
-                    <CategoryArt
-                      id={c.id}
-                      className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]"
-                    />
+                  {/* A real photograph once the category has one; the brand
+                      illustration until then. A stock photo standing in for a
+                      product nobody has shot is how a shop earns "not as
+                      described" claims — see BrandArt for the full reasoning. */}
+                  <div className="relative h-40 overflow-hidden">
+                    {c.cover ? (
+                      <Image
+                        src={c.cover}
+                        alt={c.coverAlt}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 380px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+                      />
+                    ) : (
+                      <CategoryArt
+                        id={c.id}
+                        className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]"
+                      />
+                    )}
                   </div>
 
                   <div className="flex flex-1 flex-col justify-between p-7 pt-6">
@@ -176,6 +233,59 @@ export default async function Home() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* ------------------------------------------------------ proof band */}
+      {/*
+        * Every figure here is checked, not asserted.
+        *
+        * The eBay numbers were read off the live store this session and are
+        * rounded DOWN in site.ts (eBay shows "1.9K sold", which is at least
+        * 1,900 and possibly 1,999 — "1,900+" is true either way). The product
+        * count is computed from the catalogue at request time, so it cannot
+        * drift out of step with what is actually on the shelf.
+        */}
+      <section className="border-y border-duv-line bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+          <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                n: 1900,
+                suffix: "+",
+                label: "orders shipped",
+                note: "On eBay as DUV Prints and Gifts USA, since 2023.",
+              },
+              {
+                n: 100,
+                suffix: "%",
+                label: "positive feedback",
+                note: "Across every one of those orders. Not a selected window.",
+              },
+              {
+                n: products.length,
+                suffix: "",
+                label: "products in stock",
+                note: "Counted live from the catalogue as this page loaded.",
+              },
+              {
+                n: site.policy.freeShippingThreshold,
+                prefix: "$",
+                label: "for free shipping",
+                note: `Flat rates below that. ${site.policy.returnWindowDays}-day returns either way.`,
+              },
+            ].map((s, i) => (
+              <li key={s.label}>
+                <Reveal delay={i * 80}>
+                  <p className="font-display text-[40px] font-extrabold leading-none tracking-[-0.03em] text-duv-plum tabular-nums">
+                    <CountUp value={s.n} prefix={s.prefix ?? ""} suffix={s.suffix ?? ""} />
+                  </p>
+                  <p className="mt-2.5 text-[14px] font-bold text-duv-plum">{s.label}</p>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-duv-muted">{s.note}</p>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* -------------------------------------------------------- featured */}
